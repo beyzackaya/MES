@@ -83,16 +83,16 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
                   <Component id="welcomelbl" min="-2" pref="205" max="-2" attributes="0"/>
-                  <EmptySpace pref="517" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="-2" attributes="0"/>
+              <Group type="102" attributes="0">
+                  <EmptySpace min="-2" pref="33" max="-2" attributes="0"/>
                   <Component id="welcomelbl" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="567" max="32767" attributes="0"/>
+                  <EmptySpace pref="602" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -116,24 +116,46 @@
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <Component id="jButton1" min="-2" pref="113" max="-2" attributes="0"/>
-                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  <Component id="products_btn" min="-2" pref="129" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="rawmaterial_btn" min="-2" pref="126" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="workOrders_btn" min="-2" pref="130" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="340" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="jButton1" alignment="0" pref="62" max="32767" attributes="0"/>
+              <Component id="products_btn" pref="62" max="32767" attributes="0"/>
+              <Component id="rawmaterial_btn" max="32767" attributes="0"/>
+              <Component id="workOrders_btn" alignment="0" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JButton" name="jButton1">
+        <Component class="javax.swing.JButton" name="products_btn">
           <Properties>
             <Property name="text" type="java.lang.String" value="Products"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="products_btnActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="rawmaterial_btn">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Raw Materials"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rawmaterial_btnActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="workOrders_btn">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Work Orders"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="workOrders_btnActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>
