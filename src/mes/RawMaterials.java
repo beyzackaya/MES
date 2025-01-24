@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
+
 package mes;
 
 import java.sql.Connection;
@@ -11,15 +8,8 @@ import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author beyzackaya
- */
 public class RawMaterials extends javax.swing.JFrame {
 
-    /**
-     * Creates new form RawMaterials
-     */
     public RawMaterials() {
         initComponents();
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -30,11 +20,10 @@ public class RawMaterials extends javax.swing.JFrame {
         private void loadTable(String filterQuery) {
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM raw_material WHERE 1=1 " + filterQuery; // Filtreyi burada kullanacağız
+            String sql = "SELECT * FROM raw_material WHERE 1=1 " + filterQuery;
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
-            // JTable'ın modelini oluşturun
             DefaultTableModel model = new DefaultTableModel(new String[]{
                 "Raw Product ID", "Name","Color", "Stock"}, 0);
 
