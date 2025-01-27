@@ -147,7 +147,7 @@ public class ManagerMenu extends javax.swing.JFrame {
     }//GEN-LAST:event_rawmaterial_btnActionPerformed
 
     private void workOrders_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_workOrders_btnActionPerformed
-        new workOrders().setVisible(true);
+        new WorkOrders().setVisible(true);
     }//GEN-LAST:event_workOrders_btnActionPerformed
 
     public static void main(String args[]) {

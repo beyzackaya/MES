@@ -1,38 +1,93 @@
 package mes;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JOptionPane;
+import mes.Database.ProductDatabase;
+import mes.Database.ProductionDatabase;
+import mes.Database.RawMaterialDatabase;
+import mes.Database.WareHouseDatabase;
+import mes.model.WareHouse;
+import mes.model.Product;
+import mes.model.RawMaterial;
 
-public class workOrders extends javax.swing.JFrame {
+public class WorkOrders extends javax.swing.JFrame {
 
-    public workOrders() {
+    public WorkOrders() {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         initComponents();
-        loadTable("");
+        loadTable();
         loadWarehouses();
     }
+    
+    
+    private void createWorkOrder() {
+    int selectedRow = products_rawMaterials_tbl.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin.");
+        return;
+    }
+
+    String warehouseName = (String) warehouse_combox.getSelectedItem();
+    String quantityText = quantity.getText();
+
+    if (warehouseName == null || warehouseName.isEmpty() || quantityText.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun.");
+        return;
+    }
+
+    int productionQuantity;
+    try {
+        productionQuantity = Integer.parseInt(quantityText);
+        if (productionQuantity <= 0) {
+            JOptionPane.showMessageDialog(this, "Üretim miktarı pozitif bir sayı olmalıdır.");
+            return;
+        }
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Üretim miktarı geçerli bir sayı olmalıdır.");
+        return;
+    }
+
+    try {
+        ProductionDatabase productionDatabase = new ProductionDatabase();
+
+        int productId = (int) products_rawMaterials_tbl.getValueAt(selectedRow, 0);
+
+        Optional<Integer> warehouseIdOpt = productionDatabase.getWarehouseIdByName(warehouseName);
+        
+        int warehouseId = warehouseIdOpt.get();
+
+        Optional<Integer> rawProductIdOpt = productionDatabase.getRawProductIdByProductId(productId);
+        Integer rawProductId = rawProductIdOpt.orElse(null);
+
+        // İş emri oluştur
+        boolean isCreated = productionDatabase.createWorkOrder(productId, warehouseId, rawProductId, productionQuantity);
+        if (isCreated) {
+            JOptionPane.showMessageDialog(this, "İş emri başarıyla oluşturuldu!");
+        } else {
+            JOptionPane.showMessageDialog(this, "İş emri oluşturulamadı.");
+        }
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "İş emri oluşturulurken bir hata oluştu: " + ex.getMessage());
+    }
+}
+
 
     private void loadWarehouses() {
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            // SQL sorgusu
-            String query = "SELECT warehouse_name FROM warehouses";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
+        try {
+            WareHouseDatabase warehouseDatabase = new WareHouseDatabase();
+            List<WareHouse> warehouses = warehouseDatabase.getAllWarehouses();
 
             warehouse_combox.removeAllItems();
 
-            while (rs.next()) {
-                String warehouseName = rs.getString("warehouse_name");
-                warehouse_combox.addItem(warehouseName);
+            for (WareHouse warehouse : warehouses) {
+                warehouse_combox.addItem(warehouse.getWarehouseName());
             }
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Depo isimleri yüklenirken hata oluştu: " + ex.getMessage());
         }
@@ -67,6 +122,11 @@ public class workOrders extends javax.swing.JFrame {
         jScrollPane1.setViewportView(products_rawMaterials_tbl);
 
         createWorkOrder_btn.setText("Create Order");
+        createWorkOrder_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createWorkOrder_btnActionPerformed(evt);
+            }
+        });
 
         warehouse_combox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
@@ -132,76 +192,65 @@ public class workOrders extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void loadTable(String filterQuery) {
+    private void createWorkOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createWorkOrder_btnActionPerformed
+        // TODO add your handling code here:
+        createWorkOrder();
+    }//GEN-LAST:event_createWorkOrder_btnActionPerformed
+
+    private void loadTable() {
         try {
-            Connection conn = DatabaseConnector.getConnection();
-            // JOIN ile products ve raw_material tablosunu birleştiriyoruz
-            String sql = "SELECT p.product_id, p.product_name, p.product_gender, p.product_color, "
-                    + "p.product_stock, p.product_category, "
-                    + "r.rawproduct_name, r.rawproduct_stock "
-                    + "FROM products p "
-                    + "LEFT JOIN raw_material r ON p.rawproduct_id = r.rawproduct_id "
-                    + "WHERE 1=1 " + filterQuery; // Filtreyi burada uyguluyoruz
+            ProductDatabase productDatabase = new ProductDatabase();
+            RawMaterialDatabase rawMaterialDatabase = new RawMaterialDatabase();
 
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            ResultSet rs = pstmt.executeQuery();
+            List<Product> products = productDatabase.getAllProducts();
+            List<RawMaterial> rawMaterials = rawMaterialDatabase.getAllRawMaterials();
 
-            // JTable'ın modelini oluşturun
+            // JTable'ın modelini oluştur
             DefaultTableModel model = new DefaultTableModel(new String[]{
                 "Product ID", "Name", "Gender", "Color", "Stock", "Category", "Raw Product", "Raw Product Stock"
             }, 0);
 
-            while (rs.next()) {
+            // Product ve RawMaterial eşleştirmesini yaparak tabloya ekle
+            for (Product product : products) {
+                RawMaterial associatedRawMaterial = null;
+
+                // Eğer product bir raw material'a bağlıysa, ilişkili raw material'ı bul
+                if (product.getRawProductId() != 0) { // rawproduct_id kontrolü
+                    for (RawMaterial rawMaterial : rawMaterials) {
+                        if (rawMaterial.getRawProductId() == product.getRawProductId()) {
+                            associatedRawMaterial = rawMaterial;
+                            break;
+                        }
+                    }
+                }
+
+                // Tablonun her satırını oluştur
                 model.addRow(new Object[]{
-                    rs.getInt("product_id"),
-                    rs.getString("product_name"),
-                    rs.getString("product_gender"),
-                    rs.getString("product_color"),
-                    rs.getString("product_stock"),
-                    rs.getString("product_category"),
-                    rs.getString("rawproduct_name") != null ? rs.getString("rawproduct_name") : "N/A", // Eğer bağlı değilse "N/A" yazsın
-                    rs.getString("rawproduct_stock") != null ? rs.getString("rawproduct_stock") : "N/A" // Eğer bağlı değilse "N/A" yazsın
+                    product.getProductId(),
+                    product.getProductName(),
+                    product.getProductGender(),
+                    product.getProductColor(),
+                    product.getProductStock(),
+                    product.getProductCategory(),
+                    associatedRawMaterial != null ? associatedRawMaterial.getRawProductName() : "N/A", // İlişkili raw material yoksa "N/A"
+                    associatedRawMaterial != null ? associatedRawMaterial.getRawProductStock() : "N/A" // İlişkili raw material stok yoksa "N/A"
                 });
             }
 
+            // Tabloyu güncelle
             products_rawMaterials_tbl.setModel(model);
 
-            rs.close();
-            pstmt.close();
-            conn.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
-            javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this, "Tablo yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
 
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(workOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(workOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(workOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(workOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new workOrders().setVisible(true);
+                new WorkOrders().setVisible(true);
             }
         });
     }

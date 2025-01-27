@@ -1,147 +1,182 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package mes;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import mes.Database.ProductDatabase;
+import mes.model.Product;
 
 public class Products extends javax.swing.JFrame {
 
     public Products() {
         initComponents();
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        loadTable("");
+        loadTable();
         loadCategories();
         loadGenders();
         loadColor();
     }
 
     private void loadCategories() {
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            String query = "SELECT product_category FROM products";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
+        try {
+            ProductDatabase productDatabase = new ProductDatabase();
+            List<Product> products = productDatabase.getAllProducts();
 
-            category_combox.removeAllItems();
+            Set<String> categories = new HashSet<>();
 
-            while (rs.next()) {
-                String categoryName = rs.getString("product_category");
-                category_combox.addItem(categoryName);
+            for (Product p : products) {
+                if (p.getProductCategory() != null && !p.getProductCategory().isEmpty()) {
+                    categories.add(p.getProductCategory());
+                }
             }
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
+            category_combox.removeAllItems();
+            for (String category : categories) {
+                category_combox.addItem(category);
+            }
+            category_combox.removeAllItems();
+            for (String category : categories) {
+                category_combox.addItem(category);
+            }
+        } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Kategoriler yüklenirken bir hata oluştu: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Renkler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
 
     private void loadGenders() {
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            String query = "SHOW COLUMNS FROM products LIKE 'product_gender'";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
 
-            gender_combox.removeAllItems();
+        try {
+            ProductDatabase productDatabase = new ProductDatabase();
+            List<Product> products = productDatabase.getAllProducts();
 
-            if (rs.next()) {
-                String enumType = rs.getString("Type");
-                String[] enumValues = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')')).split(",");
-                for (String value : enumValues) {
-                    gender_combox.addItem(value.trim().replace("'", ""));
+            Set<String> genders = new HashSet<>();
+
+            for (Product p : products) {
+                if (p.getProductGender() != null && !p.getProductGender().isEmpty()) {
+                    genders.add(p.getProductGender());
                 }
             }
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
+            color_combox.removeAllItems();
+            for (String gender : genders) {
+                color_combox.addItem(gender);
+            }
+            gender_combox.removeAllItems();
+            for (String gender : genders) {
+                gender_combox.addItem(gender);
+            }
+        } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Kategoriler yüklenirken bir hata oluştu: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Renkler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
 
     private void loadColor() {
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            String query = "SELECT product_color FROM products";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
+        try {
+            // Ürünleri veritabanından al
+            ProductDatabase productDatabase = new ProductDatabase();
+            List<Product> products = productDatabase.getAllProducts();
 
-            color_combox.removeAllItems();
+            // Set yaparak tekrarı önlüyoruz (aynı renkleri bir kez ekleriz)
+            Set<String> colors = new HashSet<>();
 
-            while (rs.next()) {
-                String colorName = rs.getString("product_color");
-                color_combox.addItem(colorName);
+            for (Product p : products) {
+                if (p.getProductColor() != null && !p.getProductColor().isEmpty()) {
+                    colors.add(p.getProductColor());
+                }
             }
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
+            color_combox.removeAllItems();
+            for (String color : colors) {
+                color_combox.addItem(color);
+            }
+
+        } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Kategoriler yüklenirken bir hata oluştu: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Renkler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
 
     private void filter() {
-        String query = "SELECT * FROM products WHERE 1=1"; 
+        String productName = productname_txt.getText().toLowerCase();
+        String productCategory = category_combox.getSelectedItem() != null ? category_combox.getSelectedItem().toString().toLowerCase() : "";
+        String productColor = color_combox.getSelectedItem() != null ? color_combox.getSelectedItem().toString().toLowerCase() : "";
+        String productGender = gender_combox.getSelectedItem() != null ? gender_combox.getSelectedItem().toString().toLowerCase() : "";
+        String productStockStatus = stock_combox.getSelectedItem() != null ? stock_combox.getSelectedItem().toString() : "";
 
-        if (!productname_txt.getText().isEmpty()) {
-            query += " AND product_name LIKE '%" + productname_txt.getText() + "%'"; // LIKE kullanarak arama
-        }
+        try {
+            ProductDatabase productDatabase = new ProductDatabase();
+            List<Product> allProducts = productDatabase.getAllProducts();
 
-        if (category_combox.getSelectedItem() != null && !category_combox.getSelectedItem().toString().isEmpty()) {
-            String selectedCategory = category_combox.getSelectedItem().toString();
-            query += " AND product_category = '" + selectedCategory + "'"; // Kategoriye göre filtrele
-        }
+            List<Product> filteredProducts = new ArrayList<>();
+            for (Product p : allProducts) {
+                boolean matches = true;
 
-        if (color_combox.getSelectedItem() != null && !color_combox.getSelectedItem().toString().isEmpty()) {
-            String selectedColor = color_combox.getSelectedItem().toString();
-            query += " AND product_color = '" + selectedColor + "'";
-        }
+                if (!productName.isEmpty() && !p.getProductName().toLowerCase().contains(productName)) {
+                    matches = false;
+                }
 
-        if (gender_combox.getSelectedItem() != null && !gender_combox.getSelectedItem().toString().isEmpty()) {
-            String selectedGender = gender_combox.getSelectedItem().toString();
-            query += " AND product_gender = '" + selectedGender + "'"; // Cinsiyete göre filtrele
-        }
-        if (!stock_combox.getSelectedItem().toString().isEmpty()) {
-            if (stock_combox.getSelectedItem().toString().equals("In Stock")) {
-                query += " AND product_stock > 0";
-            } else if (stock_combox.getSelectedItem().toString().equals("Out of Stock")) {
-                query += " AND product_stock <= 0";
-            } else if (stock_combox.getSelectedItem().toString().equals("Low Stock")) {
-                query += " AND product_stock <= 3";
+                if (!productCategory.isEmpty() && !p.getProductCategory().toLowerCase().equals(productCategory)) {
+                    matches = false;
+                }
+
+                if (!productColor.isEmpty() && !p.getProductColor().toLowerCase().equals(productColor)) {
+                    matches = false;
+                }
+
+                if (!productGender.isEmpty() && !p.getProductGender().toLowerCase().equals(productGender)) {
+                    matches = false;
+                }
+
+                if (!productStockStatus.isEmpty()) {
+                    switch (productStockStatus) {
+                        case "In Stock":
+                            if (p.getProductStock() <= 0) {
+                                matches = false;
+                            }
+                            break;
+                        case "Out of Stock":
+                            if (p.getProductStock() > 0) {
+                                matches = false;
+                            }
+                            break;
+                        case "Low Stock":
+                            if (p.getProductStock() > 3) {
+                                matches = false;
+                            }
+                            break;
+                    }
+                }
+
+                if (matches) {
+                    filteredProducts.add(p);
+                }
             }
-        }
-
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
 
             DefaultTableModel model = (DefaultTableModel) products_tbl.getModel();
-            model.setRowCount(0); // Tabloyu sıfırla
+            model.setRowCount(0);
 
-            while (rs.next()) {
-                Object[] row = new Object[products_tbl.getColumnCount()];
-                for (int i = 0; i < products_tbl.getColumnCount(); i++) {
-                    row[i] = rs.getObject(i + 1); // Veriyi alıp satırlara ekle
-                }
-                model.addRow(row);
+            for (Product p : filteredProducts) {
+                model.addRow(new Object[]{
+                    p.getProductId(),
+                    p.getProductName(),
+                    p.getProductGender(),
+                    p.getProductColor(),
+                    p.getProductStock(),
+                    p.getProductCategory(),
+                    p.getProductPrice()
+                });
             }
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Ürünler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
-
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -289,56 +324,45 @@ public class Products extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void filter_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filter_btnActionPerformed
-        // TODO add your handling code here:
         filter();
 
     }//GEN-LAST:event_filter_btnActionPerformed
 
     private void clearFilters_comboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearFilters_comboxActionPerformed
-        // TODO add your handling code here:
-        loadTable("");
+        loadTable();
     }//GEN-LAST:event_clearFilters_comboxActionPerformed
-
-    private void loadTable(String filterQuery) {
+    private void loadTable() {
         try {
-            Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM products WHERE 1=1 " + filterQuery; // Filtreyi burada kullanacağız
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            ResultSet rs = pstmt.executeQuery();
+            ProductDatabase productDatabase = new ProductDatabase();
+            List<Product> products = productDatabase.getAllProducts();
 
-            // JTable'ın modelini oluşturun
             DefaultTableModel model = new DefaultTableModel(new String[]{
-                "Product ID", "Name", "Gender", "Color", "Stock", "Category"
+                "Product ID", "Name", "Gender", "Color", "Stock", "Category", "Price"
             }, 0);
 
-            while (rs.next()) {
+            // Product nesnelerini tabloya ekle
+            for (Product p : products) {
                 model.addRow(new Object[]{
-                    rs.getInt("product_id"),
-                    rs.getString("product_name"),
-                    rs.getString("product_gender"),
-                    rs.getString("product_color"),
-                    rs.getString("product_stock"),
-                    rs.getString("product_category")
+                    p.getProductId(),
+                    p.getProductName(),
+                    p.getProductGender(),
+                    p.getProductColor(),
+                    p.getProductStock(),
+                    p.getProductCategory(),
+                    p.getProductPrice()
                 });
             }
 
-            products_tbl.setModel(model);
+            products_tbl.setModel(model); // JTable'ı model ile güncelle
 
-            rs.close();
-            pstmt.close();
-            conn.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
         }
     }
 
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -347,17 +371,15 @@ public class Products extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Products.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Product.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Products.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Product.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Products.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Product.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Products.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Product.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Products().setVisible(true);

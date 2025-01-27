@@ -1,5 +1,6 @@
 package mes;
 
+import mes.Database.DatabaseConnector;
 import java.sql.DriverManager;
 
 import java.sql.Connection;
@@ -7,9 +8,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import static mes.DatabaseConnector.DB_URL;
-import static mes.DatabaseConnector.PASS;
-import static mes.DatabaseConnector.USER;
 
 public class LogIn extends javax.swing.JFrame {
 
@@ -153,18 +151,6 @@ public class LogIn extends javax.swing.JFrame {
 
     public static void main(String args[]) {
 
-        Connection conn = null;
-
-        try {
-            conn = DriverManager.getConnection(DB_URL, USER, PASS);
-            if (conn != null) {
-                System.out.println("Bağlantı başarılı!");
-            } else {
-                System.out.println("Bağlantı başarısız!");
-            }
-        } catch (SQLException e) {
-            System.out.println("Bağlantı hatası: " + e.getMessage());
-        }
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {

@@ -117,6 +117,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Create Order"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="createWorkOrder_btnActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JTextField" name="quantity">
         </Component>

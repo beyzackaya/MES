@@ -1,12 +1,13 @@
-
 package mes;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import mes.Database.RawMaterialDatabase;
+import mes.model.RawMaterial;
 
 public class RawMaterials extends javax.swing.JFrame {
 
@@ -14,100 +15,121 @@ public class RawMaterials extends javax.swing.JFrame {
         initComponents();
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         loadColor();
-        loadTable("");
+        loadTable();
 
     }
-        private void loadTable(String filterQuery) {
+
+    private void loadTable() {
         try {
-            Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM raw_material WHERE 1=1 " + filterQuery;
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            ResultSet rs = pstmt.executeQuery();
+            RawMaterialDatabase rawMaterialDatabase = new RawMaterialDatabase();
+            List<RawMaterial> rawmaterial = rawMaterialDatabase.getAllRawMaterials();
 
             DefaultTableModel model = new DefaultTableModel(new String[]{
-                "Raw Product ID", "Name","Color", "Stock"}, 0);
+                "Product ID", "Name", "Color", "Stock", "Price"
+            }, 0);
 
-            while (rs.next()) {
+            for (RawMaterial p : rawmaterial) {
                 model.addRow(new Object[]{
-                    rs.getInt("rawproduct_id"),
-                    rs.getString("rawproduct_name"),
-                    rs.getString("rawproduct_color"),
-                    rs.getString("rawproduct_stock"),
+                    p.getRawProductId(),
+                    p.getRawProductName(),
+                    p.getRawProductColor(),
+                    p.getRawProductStock(),
+                    p.getRawProductPrice()
                 });
             }
 
             rawproducts_tbl.setModel(model);
 
-            rs.close();
-            pstmt.close();
-            conn.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
         }
     }
 
-        private void loadColor() {
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            String query = "SELECT rawproduct_color FROM raw_material";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
+    private void loadColor() {
+        try {
+            RawMaterialDatabase rawMaterialDatabase = new RawMaterialDatabase();
+            List<RawMaterial> rawMaterial = rawMaterialDatabase.getAllRawMaterials();
+
+            Set<String> colors = new HashSet<>();
+
+            for (RawMaterial p : rawMaterial) {
+                if (p.getRawProductColor() != null && !p.getRawProductColor().isEmpty()) {
+                    colors.add(p.getRawProductColor());
+                }
+            }
 
             color_combox.removeAllItems();
-
-            while (rs.next()) {
-                String color = rs.getString("rawproduct_color");
+            for (String color : colors) {
                 color_combox.addItem(color);
             }
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Kategoriler yüklenirken bir hata oluştu: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Renkler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
-        
-        private void filter() {
-        String query = "SELECT * FROM raw_material WHERE 1=1"; 
 
-        if (!name_txt.getText().isEmpty()) {
-            query += " AND rawproduct_name LIKE '%" + name_txt.getText() + "%'"; // LIKE kullanarak arama
-        }
+    private void filter() {
+        String rawproductName = name_txt.getText().toLowerCase();
+        String rawproductColor = color_combox.getSelectedItem() != null ? color_combox.getSelectedItem().toString().toLowerCase() : "";
+        String rawproductStockStatus = stock_combox.getSelectedItem() != null ? stock_combox.getSelectedItem().toString() : "";
 
-        if (color_combox.getSelectedItem() != null && !color_combox.getSelectedItem().toString().isEmpty()) {
-            String selectedColor = color_combox.getSelectedItem().toString();
-            query += " AND rawproduct_color = '" + selectedColor + "'"; // Kategoriye göre filtrele
-        }
+        try {
+            RawMaterialDatabase rawMaterialDatabase = new RawMaterialDatabase();
+            List<RawMaterial> allRawProducts = rawMaterialDatabase.getAllRawMaterials();
 
-        if (!stock_combox.getSelectedItem().toString().isEmpty()) {
-            if (stock_combox.getSelectedItem().toString().equals("In Stock")) {
-                query += " AND rawproduct_stock > 0";
-            } else if (stock_combox.getSelectedItem().toString().equals("Out of Stock")) {
-                query += " AND rawproduct_stock <= 0";
-            } else if (stock_combox.getSelectedItem().toString().equals("Low Stock")) {
-                query += " AND rawproduct_stock <= 3";
+            List<RawMaterial> filteredProducts = new ArrayList<>();
+            for (RawMaterial r : allRawProducts) {
+                boolean matches = true;
+
+                if (!rawproductName.isEmpty() && !r.getRawProductName().toLowerCase().contains(rawproductName)) {
+                    matches = false;
+                }
+
+                if (!rawproductColor.isEmpty() && !r.getRawProductColor().toLowerCase().equals(rawproductColor)) {
+                    matches = false;
+                }
+
+                if (!rawproductStockStatus.isEmpty()) {
+                    switch (rawproductStockStatus) {
+                        case "In Stock":
+                            if (r.getRawProductStock() <= 0) {
+                                matches = false;
+                            }
+                            break;
+                        case "Out of Stock":
+                            if (r.getRawProductStock() > 0) {
+                                matches = false;
+                            }
+                            break;
+                        case "Low Stock":
+                            if (r.getRawProductStock() > 3) {
+                                matches = false;
+                            }
+                            break;
+                    }
+                }
+
+                if (matches) {
+                    filteredProducts.add(r);
+                }
             }
-        }
-
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
 
             DefaultTableModel model = (DefaultTableModel) rawproducts_tbl.getModel();
-            model.setRowCount(0); // Tabloyu sıfırla
+            model.setRowCount(0);
 
-            while (rs.next()) {
-                Object[] row = new Object[rawproducts_tbl.getColumnCount()];
-                for (int i = 0; i < rawproducts_tbl.getColumnCount(); i++) {
-                    row[i] = rs.getObject(i + 1); // Veriyi alıp satırlara ekle
-                }
-                model.addRow(row);
+            for (RawMaterial r : filteredProducts) {
+                model.addRow(new Object[]{
+                    r.getRawProductId(),
+                    r.getRawProductName(),
+                    r.getRawProductColor(),
+                    r.getRawProductStock(),
+                    r.getRawProductPrice()
+                });
             }
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Ürünler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
@@ -236,7 +258,7 @@ public class RawMaterials extends javax.swing.JFrame {
 
     private void clearFilters_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearFilters_btnActionPerformed
         // TODO add your handling code here:
-        loadTable("");
+        loadTable();
     }//GEN-LAST:event_clearFilters_btnActionPerformed
 
     public static void main(String args[]) {

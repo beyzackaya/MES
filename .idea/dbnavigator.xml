@@ -12,7 +12,7 @@
   <component name="DBNavigator.Project.DatabaseBrowserManager">
     <autoscroll-to-editor value="false" />
     <autoscroll-from-editor value="true" />
-    <show-object-properties value="true" />
+    <show-object-properties value="false" />
     <loaded-nodes />
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
@@ -24,14 +24,13 @@
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files>
-      <object connection-id="6c1562b7-d808-44f4-9728-b5f0c1473ef6" object-ref="consoles/mes" />
-    </open-files>
+    <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="6c1562b7-d808-44f4-9728-b5f0c1473ef6" />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="6c1562b7-d808-44f4-9728-b5f0c1473ef6" dataset="mes.warehouse_transfer" active-filter-id="" />
     <filter-actions connection-id="6c1562b7-d808-44f4-9728-b5f0c1473ef6" dataset="sys.sys_config" active-filter-id="" />
   </component>
   <component name="DBNavigator.Project.ExecutionManager">
