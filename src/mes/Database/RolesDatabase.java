@@ -1,6 +1,4 @@
-
 package mes.Database;
-
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,8 +9,8 @@ import java.sql.ResultSet;
 import mes.model.Role;
 
 public class RolesDatabase {
-    
-       Role role = null;
+
+    Role role = null;
 
     public List<Role> getAllRoles() {
         List<Role> roles = new ArrayList<>();
@@ -38,5 +36,5 @@ public class RolesDatabase {
         }
         return roles;
     }
-    
+
 }

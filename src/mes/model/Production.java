@@ -14,6 +14,17 @@ public class Production {
     private int rawproduct_id;
     private String status;
     private int warehouse_id;
+    private Date productionDate;
+
+    public Date getProductionDate() {
+        return productionDate;
+    }
+
+    public void setProductionDate(Date productionDate) {
+        this.productionDate = productionDate;
+    }
+
+    
 
     public Production() {
     }
@@ -83,7 +94,7 @@ public class Production {
     }
 
     public void add(List<Production> productions) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
     
     

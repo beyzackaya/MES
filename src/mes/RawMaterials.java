@@ -257,7 +257,6 @@ public class RawMaterials extends javax.swing.JFrame {
     }//GEN-LAST:event_Filter_btnActionPerformed
 
     private void clearFilters_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearFilters_btnActionPerformed
-        // TODO add your handling code here:
         loadTable();
     }//GEN-LAST:event_clearFilters_btnActionPerformed
 

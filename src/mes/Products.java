@@ -77,11 +77,9 @@ public class Products extends javax.swing.JFrame {
 
     private void loadColor() {
         try {
-            // Ürünleri veritabanından al
             ProductDatabase productDatabase = new ProductDatabase();
             List<Product> products = productDatabase.getAllProducts();
 
-            // Set yaparak tekrarı önlüyoruz (aynı renkleri bir kez ekleriz)
             Set<String> colors = new HashSet<>();
 
             for (Product p : products) {
@@ -340,7 +338,6 @@ public class Products extends javax.swing.JFrame {
                 "Product ID", "Name", "Gender", "Color", "Stock", "Category", "Price"
             }, 0);
 
-            // Product nesnelerini tabloya ekle
             for (Product p : products) {
                 model.addRow(new Object[]{
                     p.getProductId(),
@@ -353,7 +350,7 @@ public class Products extends javax.swing.JFrame {
                 });
             }
 
-            products_tbl.setModel(model); // JTable'ı model ile güncelle
+            products_tbl.setModel(model);
 
         } catch (Exception ex) {
             ex.printStackTrace();

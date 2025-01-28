@@ -1,4 +1,3 @@
-
 package mes.Database;
 
 import java.util.ArrayList;
@@ -10,25 +9,26 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class SupplierDatabase {
-        Supplier supplier = null;
+
+    Supplier supplier = null;
 
     public List<Supplier> getAllRawMaterials() {
         List<Supplier> suppliers = new ArrayList<>();
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM raw_material WHERE 1=1 "; // Filtreleme için
+            String sql = "SELECT * FROM suppliers WHERE 1=1 "; // Filtreleme için
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
                 supplier = new Supplier();
-                supplier.setSupplierId(rs.getInt("rawproduct_id"));
-                supplier.setSupplierName(rs.getString("rawproduct_name"));
-                supplier.setSupplierAddress(rs.getString("rawproduct_color"));
-                supplier.setSupplierContactPerson(rs.getString("rawproduct_stock"));
-                supplier.setSupplierEmail(rs.getString("rawproduct_price"));
-                supplier.setSupplierPhoneNumber(rs.getInt("rawproduct_price"));
+                supplier.setSupplierId(rs.getInt("supplier_id"));
+                supplier.setSupplierName(rs.getString("supplier_name"));
+                supplier.setSupplierAddress(rs.getString("address"));
+                supplier.setSupplierContactPerson(rs.getString("contact_person"));
+                supplier.setSupplierEmail(rs.getString("email"));
+                supplier.setSupplierPhoneNumber(rs.getInt("phone_number"));
 
                 suppliers.add(supplier);
             }
@@ -41,5 +41,5 @@ public class SupplierDatabase {
         }
         return suppliers;
     }
-    
+
 }

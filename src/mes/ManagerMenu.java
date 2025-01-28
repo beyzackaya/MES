@@ -9,12 +9,12 @@ public class ManagerMenu extends javax.swing.JFrame {
     }
 
     public ManagerMenu(String username) {
-        this.username = username;
         initComponents();
         welcomelbl.setText("Welcome " + username);
     }
 
     public String getUsername() {
+        this.username = username;
         return username;
     }
 

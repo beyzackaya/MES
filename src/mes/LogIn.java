@@ -1,8 +1,6 @@
 package mes;
 
 import mes.Database.DatabaseConnector;
-import java.sql.DriverManager;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -114,35 +112,41 @@ public class LogIn extends javax.swing.JFrame {
         String password = new String(user_passwordtxt.getPassword());
 
         try {
-            Connection conn = DatabaseConnector.getConnection();
+            try (Connection conn = DatabaseConnector.getConnection()) {
+                String sql = "SELECT role_id FROM users WHERE username = ? AND password = ?";
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);
+                ResultSet rs = pstmt.executeQuery();
 
-            String sql = "SELECT r.role_name FROM users u "
-                    + "JOIN roles r ON u.role_id = r.role_id "
-                    + "WHERE u.username = ? AND u.password = ?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            ResultSet rs = pstmt.executeQuery();
+                if (rs.next()) {
+                    int roleId = rs.getInt("role_id");
 
-            if (rs.next()) {
-                String role = rs.getString("role_name");
+                    switch (roleId) {
+                        case 1 -> {
+                            JOptionPane.showMessageDialog(this, "Login successful!");
+                            dispose();
+                            new ManagerMenu(username).setVisible(true);
+                        }
+                        case 3 -> {
 
-                if ("Manager".equalsIgnoreCase(role)) {
-                    JOptionPane.showMessageDialog(this, "Login successful!");
-                    dispose();
-                    new ManagerMenu(username).setVisible(true);
+                            JOptionPane.showMessageDialog(this, "Login successful!");
+                            dispose();
+                            new FactoryEmployeeMenu(username).setVisible(true);
+                        }
+                        default -> {
+                            JOptionPane.showMessageDialog(this, "Login failed! Unauthorized role.");
+                            dispose();
+                        }
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(this, "Login failed!");
+                    JOptionPane.showMessageDialog(this, "Login failed! Invalid username or password.");
                     dispose();
                 }
 
-            } else {
-                JOptionPane.showMessageDialog(this, "Invalid username or password!");
+                rs.close();
+                pstmt.close();
             }
-
-            rs.close();
-            pstmt.close();
-            conn.close();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage());
             ex.printStackTrace();
@@ -168,10 +172,8 @@ public class LogIn extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(LogIn.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new LogIn().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new LogIn().setVisible(true);
         });
     }
 

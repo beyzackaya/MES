@@ -54,27 +54,27 @@ public class Order {
         this.orderStatus = orderStatus;
     }
 
-    public int getProductId() {
+    public int getOrderProductId() {
         return productId;
     }
 
-    public void setProductId(int productId) {
+    public void setOrderProductId(int productId) {
         this.productId = productId;
     }
 
-    public int getUserId() {
+    public int getOrderUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setOrderUserId(int userId) {
         this.userId = userId;
     }
 
-    public int getWareHouseId() {
+    public int getOrderWareHouseId() {
         return wareHouseId;
     }
 
-    public void setWareHouseId(int wareHouseId) {
+    public void setOrderWareHouseId(int wareHouseId) {
         this.wareHouseId = wareHouseId;
     }
 

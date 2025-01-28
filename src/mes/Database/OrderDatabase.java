@@ -1,4 +1,3 @@
-
 package mes.Database;
 
 import java.util.ArrayList;
@@ -10,8 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class OrderDatabase {
-    
-    
+
     Order order = null;
 
     public List<Order> getAllRawMaterials() {
@@ -25,15 +23,15 @@ public class OrderDatabase {
 
             while (rs.next()) {
                 order = new Order();
-                order.setOrderId(rs.getInt("rawproduct_id"));
-                order.setOrdeDate(rs.getDate("rawproduct_name"));
-                order.setOrderPrice(rs.getDouble("rawproduct_color"));
-                order.setOrderQuantity(rs.getInt("rawproduct_stock"));
-                order.setOrderStatus(rs.getString("rawproduct_price"));
-                order.setOrderProductId(rs.getInt("rawproduct_price"));
-                order.setOrderUserId(rs.getInt("rawproduct_price"));
-                order.setOrderWareHouseId(rs.getInt("rawproduct_price"));
-                
+                order.setOrderId(rs.getInt("order_id"));
+                order.setOrdeDate(rs.getDate("order_date"));
+                order.setOrderPrice(rs.getDouble("order_price"));
+                order.setOrderQuantity(rs.getInt("order_quantity"));
+                order.setOrderStatus(rs.getString("order_status"));
+                order.setOrderProductId(rs.getInt("product_id"));
+                order.setOrderUserId(rs.getInt("user_id"));
+                order.setOrderWareHouseId(rs.getInt("warehouse_id"));
+
                 orders.add(order);
             }
 
@@ -45,5 +43,5 @@ public class OrderDatabase {
         }
         return orders;
     }
-    
+
 }

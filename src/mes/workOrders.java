@@ -21,60 +21,57 @@ public class WorkOrders extends javax.swing.JFrame {
         loadTable();
         loadWarehouses();
     }
-    
-    
+
     private void createWorkOrder() {
-    int selectedRow = products_rawMaterials_tbl.getSelectedRow();
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin.");
-        return;
-    }
-
-    String warehouseName = (String) warehouse_combox.getSelectedItem();
-    String quantityText = quantity.getText();
-
-    if (warehouseName == null || warehouseName.isEmpty() || quantityText.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun.");
-        return;
-    }
-
-    int productionQuantity;
-    try {
-        productionQuantity = Integer.parseInt(quantityText);
-        if (productionQuantity <= 0) {
-            JOptionPane.showMessageDialog(this, "Üretim miktarı pozitif bir sayı olmalıdır.");
+        int selectedRow = products_rawMaterials_tbl.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin.");
             return;
         }
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Üretim miktarı geçerli bir sayı olmalıdır.");
-        return;
-    }
 
-    try {
-        ProductionDatabase productionDatabase = new ProductionDatabase();
+        String warehouseName = (String) warehouse_combox.getSelectedItem();
+        String quantityText = quantity.getText();
 
-        int productId = (int) products_rawMaterials_tbl.getValueAt(selectedRow, 0);
-
-        Optional<Integer> warehouseIdOpt = productionDatabase.getWarehouseIdByName(warehouseName);
-        
-        int warehouseId = warehouseIdOpt.get();
-
-        Optional<Integer> rawProductIdOpt = productionDatabase.getRawProductIdByProductId(productId);
-        Integer rawProductId = rawProductIdOpt.orElse(null);
-
-        // İş emri oluştur
-        boolean isCreated = productionDatabase.createWorkOrder(productId, warehouseId, rawProductId, productionQuantity);
-        if (isCreated) {
-            JOptionPane.showMessageDialog(this, "İş emri başarıyla oluşturuldu!");
-        } else {
-            JOptionPane.showMessageDialog(this, "İş emri oluşturulamadı.");
+        if (warehouseName == null || warehouseName.isEmpty() || quantityText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun.");
+            return;
         }
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(this, "İş emri oluşturulurken bir hata oluştu: " + ex.getMessage());
-    }
-}
 
+        int productionQuantity;
+        try {
+            productionQuantity = Integer.parseInt(quantityText);
+            if (productionQuantity <= 0) {
+                JOptionPane.showMessageDialog(this, "Üretim miktarı pozitif bir sayı olmalıdır.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Üretim miktarı geçerli bir sayı olmalıdır.");
+            return;
+        }
+
+        try {
+            ProductionDatabase productionDatabase = new ProductionDatabase();
+
+            int productId = (int) products_rawMaterials_tbl.getValueAt(selectedRow, 0);
+
+            Optional<Integer> warehouseIdOpt = productionDatabase.getWarehouseIdByName(warehouseName);
+
+            int warehouseId = warehouseIdOpt.get();
+
+            Optional<Integer> rawProductIdOpt = productionDatabase.getRawProductIdByProductId(productId);
+            Integer rawProductId = rawProductIdOpt.orElse(null);
+
+            boolean isCreated = productionDatabase.createWorkOrder(productId, warehouseId, rawProductId, productionQuantity);
+            if (isCreated) {
+                JOptionPane.showMessageDialog(this, "İş emri başarıyla oluşturuldu!");
+            } else {
+                JOptionPane.showMessageDialog(this, "İş emri oluşturulamadı.");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "İş emri oluşturulurken bir hata oluştu: " + ex.getMessage());
+        }
+    }
 
     private void loadWarehouses() {
         try {
@@ -193,7 +190,6 @@ public class WorkOrders extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void createWorkOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createWorkOrder_btnActionPerformed
-        // TODO add your handling code here:
         createWorkOrder();
     }//GEN-LAST:event_createWorkOrder_btnActionPerformed
 
@@ -205,17 +201,14 @@ public class WorkOrders extends javax.swing.JFrame {
             List<Product> products = productDatabase.getAllProducts();
             List<RawMaterial> rawMaterials = rawMaterialDatabase.getAllRawMaterials();
 
-            // JTable'ın modelini oluştur
             DefaultTableModel model = new DefaultTableModel(new String[]{
                 "Product ID", "Name", "Gender", "Color", "Stock", "Category", "Raw Product", "Raw Product Stock"
             }, 0);
 
-            // Product ve RawMaterial eşleştirmesini yaparak tabloya ekle
             for (Product product : products) {
                 RawMaterial associatedRawMaterial = null;
 
-                // Eğer product bir raw material'a bağlıysa, ilişkili raw material'ı bul
-                if (product.getRawProductId() != 0) { // rawproduct_id kontrolü
+                if (product.getRawProductId() != 0) {
                     for (RawMaterial rawMaterial : rawMaterials) {
                         if (rawMaterial.getRawProductId() == product.getRawProductId()) {
                             associatedRawMaterial = rawMaterial;
@@ -224,7 +217,6 @@ public class WorkOrders extends javax.swing.JFrame {
                     }
                 }
 
-                // Tablonun her satırını oluştur
                 model.addRow(new Object[]{
                     product.getProductId(),
                     product.getProductName(),
@@ -237,7 +229,6 @@ public class WorkOrders extends javax.swing.JFrame {
                 });
             }
 
-            // Tabloyu güncelle
             products_rawMaterials_tbl.setModel(model);
 
         } catch (Exception ex) {

@@ -1,4 +1,3 @@
-
 package mes.Database;
 
 import java.util.ArrayList;
@@ -9,13 +8,11 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import mes.model.User;
 
-
-
 public class UserDatabase {
-           User users = null;
 
-   
-        public List<User> getAllUsers() {
+    User users = null;
+
+    public List<User> getAllUsers() {
         List<User> user = new ArrayList<>();
 
         try {
@@ -41,8 +38,33 @@ public class UserDatabase {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        return user ;
+        return user;
     }
 
-    
+//        public String login(String username, String password) throws SQLException {
+//        String roleName = null;
+//        Connection conn = null;
+//        PreparedStatement pstmt = null;
+//        ResultSet rs = null;
+//
+//        try {
+//            conn = DatabaseConnector.getConnection();
+//            String sql = "SELECT r.role_name FROM users u "
+//                    + "JOIN roles r ON u.role_id = r.role_id "
+//                    + "WHERE u.username = ? AND u.password = ?";
+//            pstmt = conn.prepareStatement(sql);
+//            pstmt.setString(1, username);
+//            pstmt.setString(2, password);
+//            rs = pstmt.executeQuery();
+//
+//            if (rs.next()) {
+//                roleName = rs.getString("role_name");
+//            }
+//        } finally {
+//            if (rs != null) rs.close();
+//            if (pstmt != null) pstmt.close();
+//            if (conn != null) conn.close();
+//        }
+//        return roleName;
+//    }
 }

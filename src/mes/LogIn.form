@@ -63,7 +63,6 @@
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace min="-2" pref="95" max="-2" attributes="0"/>
                           <Component id="logIn_lbl" min="-2" pref="155" max="-2" attributes="0"/>
-                          <EmptySpace pref="47" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace pref="225" max="32767" attributes="0"/>
