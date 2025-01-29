@@ -17,7 +17,7 @@ public class InventoryMovementDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM inventory_movement WHERE 1=1 "; // Filtreleme için
+            String sql = "SELECT * FROM inventory_movement ";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 

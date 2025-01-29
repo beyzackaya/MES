@@ -17,7 +17,7 @@ public class UserDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM users WHERE 1=1 ";
+            String sql = "SELECT * FROM users ";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
@@ -41,30 +41,4 @@ public class UserDatabase {
         return user;
     }
 
-//        public String login(String username, String password) throws SQLException {
-//        String roleName = null;
-//        Connection conn = null;
-//        PreparedStatement pstmt = null;
-//        ResultSet rs = null;
-//
-//        try {
-//            conn = DatabaseConnector.getConnection();
-//            String sql = "SELECT r.role_name FROM users u "
-//                    + "JOIN roles r ON u.role_id = r.role_id "
-//                    + "WHERE u.username = ? AND u.password = ?";
-//            pstmt = conn.prepareStatement(sql);
-//            pstmt.setString(1, username);
-//            pstmt.setString(2, password);
-//            rs = pstmt.executeQuery();
-//
-//            if (rs.next()) {
-//                roleName = rs.getString("role_name");
-//            }
-//        } finally {
-//            if (rs != null) rs.close();
-//            if (pstmt != null) pstmt.close();
-//            if (conn != null) conn.close();
-//        }
-//        return roleName;
-//    }
 }

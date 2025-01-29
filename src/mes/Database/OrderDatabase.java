@@ -17,7 +17,7 @@ public class OrderDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM orders WHERE 1=1 "; // Filtreleme için
+            String sql = "SELECT * FROM orders "; 
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 

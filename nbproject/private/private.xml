@@ -3,7 +3,6 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/DatabaseConnector.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/ManagerMenu.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/FactoryEmployeeMenu.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Production.java</file>
@@ -11,23 +10,23 @@
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/LogIn.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/ProductDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/WarehouseTransferId.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/1144760-3.png</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/OrderDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/SupplierOrderDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/ProductionDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/RawMaterialDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/RolesDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/InventoryMovement.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/newProduct.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/UserDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/SupplierDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/WorkOrders.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/WarehouseStockDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/ProductRawMaterial.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/RawMaterials.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/ProductRawMaterial.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Products.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/WareHouseDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/InventoryMovementDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/ProductRawMaterialDatabase.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/InventoryMovementDatabase.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Product.java</file>
         </group>
     </open-files>

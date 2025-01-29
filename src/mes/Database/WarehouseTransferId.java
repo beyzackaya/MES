@@ -17,7 +17,7 @@ public class WarehouseTransferId {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM warehouse_transfer WHERE 1=1 "; // Filtreleme için
+            String sql = "SELECT * FROM warehouse_transfer ";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 

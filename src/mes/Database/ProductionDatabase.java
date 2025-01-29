@@ -11,10 +11,6 @@ import java.util.Optional;
 
 public class ProductionDatabase {
 
-    public void showTable() {
-
-    }
-
     public static List<Production> getProductionsByStatus(String status) {
         List<Production> productions = new ArrayList<>();
         try {
@@ -22,7 +18,7 @@ public class ProductionDatabase {
 
             String sql = "SELECT * FROM production WHERE status = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, status); // status parametresini sorguya bağlıyoruz
+            pstmt.setString(1, status);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -36,10 +32,6 @@ public class ProductionDatabase {
                 production.setEndDate(rs.getDate("end_date"));
                 production.setStatus(rs.getString("status"));
                 productions.add(production);
-            }
-
-            if (productions.isEmpty()) {
-                System.out.println("No productions found with status: " + status);
             }
 
             rs.close();
@@ -64,7 +56,6 @@ public class ProductionDatabase {
 
             pstmt.setInt(3, productionId);
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("Rows affected: " + rowsAffected);
             return rowsAffected > 0;
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -85,7 +76,6 @@ public class ProductionDatabase {
 
             pstmt.setInt(3, productionId);
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("Rows affected: " + rowsAffected);
             return rowsAffected > 0;
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -138,7 +128,7 @@ public class ProductionDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM production WHERE 1=1 ";
+            String sql = "SELECT * FROM production";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 

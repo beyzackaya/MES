@@ -224,8 +224,8 @@ public class WorkOrders extends javax.swing.JFrame {
                     product.getProductColor(),
                     product.getProductStock(),
                     product.getProductCategory(),
-                    associatedRawMaterial != null ? associatedRawMaterial.getRawProductName() : "N/A", // İlişkili raw material yoksa "N/A"
-                    associatedRawMaterial != null ? associatedRawMaterial.getRawProductStock() : "N/A" // İlişkili raw material stok yoksa "N/A"
+                    associatedRawMaterial != null ? associatedRawMaterial.getRawProductName() : "N/A",
+                    associatedRawMaterial != null ? associatedRawMaterial.getRawProductStock() : "N/A"
                 });
             }
 

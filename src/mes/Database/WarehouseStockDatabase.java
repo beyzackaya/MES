@@ -17,7 +17,7 @@ public class WarehouseStockDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * warehouse_stock WHERE 1=1 "; // Filtreleme için
+            String sql = "SELECT * warehouse_stock "; 
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 

@@ -17,7 +17,7 @@ public class SupplierDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM suppliers WHERE 1=1 "; // Filtreleme için
+            String sql = "SELECT * FROM suppliers WHERE ";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 

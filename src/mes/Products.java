@@ -1,11 +1,16 @@
 package mes;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import mes.Database.DatabaseConnector;
 import mes.Database.ProductDatabase;
 import mes.model.Product;
 
@@ -22,57 +27,79 @@ public class Products extends javax.swing.JFrame {
 
     private void loadCategories() {
         try {
-            ProductDatabase productDatabase = new ProductDatabase();
-            List<Product> products = productDatabase.getAllProducts();
+            Connection conn = DatabaseConnector.getConnection();
+            String sql = "SHOW COLUMNS FROM products LIKE 'product_category';";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
 
-            Set<String> categories = new HashSet<>();
+            ArrayList<String> categories = new ArrayList<>();
 
-            for (Product p : products) {
-                if (p.getProductCategory() != null && !p.getProductCategory().isEmpty()) {
-                    categories.add(p.getProductCategory());
+            if (rs.next()) {
+                String enumType = rs.getString("Type");
+                enumType = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')'));
+                String[] enumValues = enumType.split(",");
+
+                for (String value : enumValues) {
+                    categories.add(value.replace("'", "").trim());
                 }
             }
 
             category_combox.removeAllItems();
+            category_combox.addItem("");
+
             for (String category : categories) {
                 category_combox.addItem(category);
             }
-            category_combox.removeAllItems();
-            for (String category : categories) {
-                category_combox.addItem(category);
-            }
-        } catch (Exception ex) {
+
+            rs.close();
+            stmt.close();
+            conn.close();
+
+        } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Renkler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
 
     private void loadGenders() {
-
         try {
-            ProductDatabase productDatabase = new ProductDatabase();
-            List<Product> products = productDatabase.getAllProducts();
+            Connection conn = DatabaseConnector.getConnection();
+            String sql = "SHOW COLUMNS FROM products LIKE 'product_gender';";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
 
-            Set<String> genders = new HashSet<>();
+            ArrayList<String> categories = new ArrayList<>();
 
-            for (Product p : products) {
-                if (p.getProductGender() != null && !p.getProductGender().isEmpty()) {
-                    genders.add(p.getProductGender());
+            if (rs.next()) {
+                String enumType = rs.getString("Type");
+                enumType = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')'));
+                String[] enumValues = enumType.split(",");
+
+                for (String value : enumValues) {
+                    categories.add(value.replace("'", "").trim());
                 }
             }
 
-            color_combox.removeAllItems();
-            for (String gender : genders) {
-                color_combox.addItem(gender);
-            }
             gender_combox.removeAllItems();
-            for (String gender : genders) {
-                gender_combox.addItem(gender);
+            gender_combox.addItem("");
+
+            for (String category : categories) {
+                gender_combox.addItem(category);
             }
-        } catch (Exception ex) {
+
+            rs.close();
+            stmt.close();
+            conn.close();
+
+        } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Renkler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
+    }
+
+    public String capitalizeFirstLetter(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 
     private void loadColor() {
@@ -84,13 +111,14 @@ public class Products extends javax.swing.JFrame {
 
             for (Product p : products) {
                 if (p.getProductColor() != null && !p.getProductColor().isEmpty()) {
-                    colors.add(p.getProductColor());
+                    colors.add(p.getProductColor().toLowerCase());
                 }
             }
 
             color_combox.removeAllItems();
+            color_combox.addItem("");
             for (String color : colors) {
-                color_combox.addItem(color);
+                color_combox.addItem(capitalizeFirstLetter(color));
             }
 
         } catch (Exception ex) {
@@ -99,12 +127,45 @@ public class Products extends javax.swing.JFrame {
         }
     }
 
+    private void deleteProduct() {
+        int selectedRow = products_tbl.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen silmek için bir ürün seçin!");
+            return;
+        }
+
+        int productId = (int) products_tbl.getValueAt(selectedRow, 0);
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Bu ürünü silmek istediğinize emin misiniz?",
+                "Onay", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                ProductDatabase db = new ProductDatabase();
+                boolean success = db.deleteProductById(productId);
+
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Ürün ve ilgili ham madde bilgileri başarıyla silindi!");
+                    DefaultTableModel model = (DefaultTableModel) products_tbl.getModel();
+                    model.removeRow(selectedRow);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Ürün silinemedi! Veritabanı hatası olabilir.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Silme işlemi sırasında hata oluştu: " + e.getMessage());
+            }
+        }
+    }
+
     private void filter() {
-        String productName = productname_txt.getText().toLowerCase();
-        String productCategory = category_combox.getSelectedItem() != null ? category_combox.getSelectedItem().toString().toLowerCase() : "";
-        String productColor = color_combox.getSelectedItem() != null ? color_combox.getSelectedItem().toString().toLowerCase() : "";
-        String productGender = gender_combox.getSelectedItem() != null ? gender_combox.getSelectedItem().toString().toLowerCase() : "";
-        String productStockStatus = stock_combox.getSelectedItem() != null ? stock_combox.getSelectedItem().toString() : "";
+        String productName = productname_txt.getText().trim().toLowerCase();
+        String productCategory = category_combox.getSelectedItem() != null ? category_combox.getSelectedItem().toString().trim() : "";
+        String productColor = color_combox.getSelectedItem() != null ? color_combox.getSelectedItem().toString().trim() : "";
+        String productGender = gender_combox.getSelectedItem() != null ? gender_combox.getSelectedItem().toString().trim() : "";
+        String productStockStatus = stock_combox.getSelectedItem() != null ? stock_combox.getSelectedItem().toString().trim() : "";
 
         try {
             ProductDatabase productDatabase = new ProductDatabase();
@@ -118,19 +179,19 @@ public class Products extends javax.swing.JFrame {
                     matches = false;
                 }
 
-                if (!productCategory.isEmpty() && !p.getProductCategory().toLowerCase().equals(productCategory)) {
+                if (!productCategory.isEmpty() && !productCategory.equalsIgnoreCase("") && !p.getProductCategory().equalsIgnoreCase(productCategory)) {
                     matches = false;
                 }
 
-                if (!productColor.isEmpty() && !p.getProductColor().toLowerCase().equals(productColor)) {
+                if (!productColor.isEmpty() && !productColor.equalsIgnoreCase("") && !p.getProductColor().equalsIgnoreCase(productColor)) {
                     matches = false;
                 }
 
-                if (!productGender.isEmpty() && !p.getProductGender().toLowerCase().equals(productGender)) {
+                if (!productGender.isEmpty() && !productGender.equalsIgnoreCase("") && !p.getProductGender().equalsIgnoreCase(productGender)) {
                     matches = false;
                 }
 
-                if (!productStockStatus.isEmpty()) {
+                if (!productStockStatus.isEmpty() && !productStockStatus.equalsIgnoreCase("")) {
                     switch (productStockStatus) {
                         case "In Stock":
                             if (p.getProductStock() <= 0) {
@@ -162,10 +223,10 @@ public class Products extends javax.swing.JFrame {
                 model.addRow(new Object[]{
                     p.getProductId(),
                     p.getProductName(),
-                    p.getProductGender(),
-                    p.getProductColor(),
+                    capitalizeFirstLetter(p.getProductGender()),
+                    capitalizeFirstLetter(p.getProductColor()),
                     p.getProductStock(),
-                    p.getProductCategory(),
+                    capitalizeFirstLetter(p.getProductCategory()),
                     p.getProductPrice()
                 });
             }
@@ -195,6 +256,13 @@ public class Products extends javax.swing.JFrame {
         category_combox = new javax.swing.JComboBox<>();
         gender_combox = new javax.swing.JComboBox<>();
         productname_txt = new javax.swing.JTextField();
+        addProduct_btn = new javax.swing.JButton();
+        delete_btn = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
 
         menu1.setLabel("File");
         menuBar1.add(menu1);
@@ -224,16 +292,16 @@ public class Products extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 494, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 646, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(19, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(35, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 472, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(39, 39, 39))
+                .addGap(58, 58, 58))
         );
 
         jPanel2.setBackground(new java.awt.Color(204, 204, 255));
@@ -245,7 +313,7 @@ public class Products extends javax.swing.JFrame {
             }
         });
 
-        filter_btn.setText("apply");
+        filter_btn.setText("Filter");
         filter_btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 filter_btnActionPerformed(evt);
@@ -260,47 +328,106 @@ public class Products extends javax.swing.JFrame {
 
         gender_combox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "", "Item 2", "Item 3", "Item 4" }));
 
+        addProduct_btn.setText("Add Product");
+        addProduct_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addProduct_btnActionPerformed(evt);
+            }
+        });
+
+        delete_btn.setText("Delete");
+        delete_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                delete_btnActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setBackground(new java.awt.Color(0, 0, 0));
+        jLabel1.setFont(new java.awt.Font("Helvetica Neue", 0, 18)); // NOI18N
+        jLabel1.setText("Name");
+
+        jLabel2.setFont(new java.awt.Font("Helvetica Neue", 0, 18)); // NOI18N
+        jLabel2.setText("Gender");
+
+        jLabel3.setFont(new java.awt.Font("Helvetica Neue", 0, 18)); // NOI18N
+        jLabel3.setText("Color");
+
+        jLabel4.setFont(new java.awt.Font("Helvetica Neue", 0, 18)); // NOI18N
+        jLabel4.setText("Stock");
+
+        jLabel5.setFont(new java.awt.Font("Helvetica Neue", 0, 18)); // NOI18N
+        jLabel5.setText("Category");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap(19, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(clearFilters_combox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(filter_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(35, 35, 35))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(stock_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(color_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(category_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(gender_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(48, 48, 48))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(productname_txt, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap(21, Short.MAX_VALUE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addComponent(addProduct_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(36, 36, 36)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(gender_combox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(productname_txt, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabel2)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                                    .addComponent(jLabel5)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(category_combox, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(filter_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addGroup(jPanel2Layout.createSequentialGroup()
+                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(jLabel4))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(stock_combox, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(color_combox, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(clearFilters_combox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addComponent(delete_btn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 241, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addGap(44, 44, 44)
-                .addComponent(gender_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
-                .addComponent(category_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(29, 29, 29)
-                .addComponent(color_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28)
-                .addComponent(stock_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28)
-                .addComponent(productname_txt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(97, 97, 97)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(productname_txt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(gender_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(category_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(color_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(stock_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addGap(18, 18, 18)
                 .addComponent(filter_btn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(clearFilters_combox)
-                .addGap(27, 27, 27))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 159, Short.MAX_VALUE)
+                .addComponent(delete_btn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(addProduct_btn)
+                .addGap(111, 111, 111))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -329,6 +456,16 @@ public class Products extends javax.swing.JFrame {
     private void clearFilters_comboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearFilters_comboxActionPerformed
         loadTable();
     }//GEN-LAST:event_clearFilters_comboxActionPerformed
+
+    private void addProduct_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addProduct_btnActionPerformed
+        // TODO add your handling code here:
+        new newProduct().setVisible(true);
+
+    }//GEN-LAST:event_addProduct_btnActionPerformed
+
+    private void delete_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_btnActionPerformed
+        deleteProduct();
+    }//GEN-LAST:event_delete_btnActionPerformed
     private void loadTable() {
         try {
             ProductDatabase productDatabase = new ProductDatabase();
@@ -385,11 +522,18 @@ public class Products extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addProduct_btn;
     private javax.swing.JComboBox<String> category_combox;
     private javax.swing.JButton clearFilters_combox;
     private javax.swing.JComboBox<String> color_combox;
+    private javax.swing.JButton delete_btn;
     private javax.swing.JButton filter_btn;
     private javax.swing.JComboBox<String> gender_combox;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;

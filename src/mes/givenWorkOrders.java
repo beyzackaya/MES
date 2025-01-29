@@ -13,45 +13,31 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
     public givenWorkOrders() {
         initComponents();
+        updateTable();
+
+    }
+
+    private void updateTable() {
         loadProductionTable(inProces_tbl, "In Production");
         loadProductionTable(givenWorkOrderstbl, "Pending");
         loadProductionTable(completed_tbl, "Completed");
+
     }
 
-//    private void inProduction() {
-//        loadProductionTable(inProces_tbl, "In Production");
-//    }
-//
-//    private void Pending() {
-//        loadProductionTable(inProces_tbl, "Pending");
-//    }
-//
-//    private void completed() {
-//        loadProductionTable(inProces_tbl, "Completed");
-//    }
     private void updateProductionStatusForSelectedRow(JTable table, String status) {
-        int selectedRow = table.getSelectedRow(); // Tablodaki seçili satırın index'i
+        int selectedRow = table.getSelectedRow();
 
-        // Eğer bir satır seçilmişse
         if (selectedRow != -1) {
-            // Seçilen satırdaki "Production ID" değerini alıyoruz
-            int productionId = (int) table.getValueAt(selectedRow, 0); // '0' index, "Production ID" kolonunu temsil eder
+            int productionId = (int) table.getValueAt(selectedRow, 0);
 
-            // Status güncelleme işlemini yapıyoruz
             boolean success = updateProductionStatus(productionId, status);
 
             if (success) {
-                // İlgili tabloyu güncelliyoruz
                 if ("In Production".equals(status)) {
-                    loadProductionTable(inProces_tbl, "In Production");
-                    loadProductionTable(givenWorkOrderstbl, "Pending");
-                    loadProductionTable(completed_tbl, "Completed");
+                    updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'In Production'.");
                 } else if ("Completed".equals(status)) {
-                    loadProductionTable(inProces_tbl, "In Production");
-                    loadProductionTable(givenWorkOrderstbl, "Pending");
-                    loadProductionTable(completed_tbl, "Completed");
-
+                    updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'Completed'.");
                 }
             } else {
@@ -72,15 +58,10 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
             if (success) {
                 if ("In Production".equals(status)) {
-                    loadProductionTable(inProces_tbl, "In Production");
-                    loadProductionTable(givenWorkOrderstbl, "Pending");
-                    loadProductionTable(completed_tbl, "Completed");
+                    updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'In Production'.");
                 } else if ("Completed".equals(status)) {
-                    loadProductionTable(inProces_tbl, "In Production");
-                    loadProductionTable(givenWorkOrderstbl, "Pending");
-                    loadProductionTable(completed_tbl, "Completed");
-
+                    updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'Completed'.");
                 }
             } else {
@@ -96,10 +77,6 @@ public class givenWorkOrders extends javax.swing.JFrame {
             ProductionDatabase productionDatabase = new ProductionDatabase();
 
             List<Production> productions = productionDatabase.getProductionsByStatus(status);
-
-            if (productions.isEmpty()) {
-                System.out.println("No productions found for status: " + status);
-            }
 
             DefaultTableModel model = new DefaultTableModel(new String[]{
                 "Production ID", "Product ID", "Quantity Produced", "Warehouse ID", "Raw Product ID", "Start Date", "End Date", "Status"

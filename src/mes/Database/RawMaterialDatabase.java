@@ -17,7 +17,7 @@ public class RawMaterialDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM raw_material WHERE 1=1 "; // Filtreleme için
+            String sql = "SELECT * FROM raw_material ";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
@@ -38,6 +38,10 @@ public class RawMaterialDatabase {
             ex.printStackTrace();
         }
         return rawMaterials;
+    }
+
+    public boolean deleteProductById(int productId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
 }

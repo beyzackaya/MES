@@ -17,7 +17,7 @@ public class RolesDatabase {
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM roles WHERE 1=1 ";
+            String sql = "SELECT * FROM roles ";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
