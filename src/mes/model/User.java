@@ -10,6 +10,15 @@ public class User {
     private String user_lastname;
     private String user_name;
     private String username;
+    private int warehouseId;
+
+    public int getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(int warehouseId) {
+        this.warehouseId = warehouseId;
+    }
 
     public User() {
     }

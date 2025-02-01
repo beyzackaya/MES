@@ -100,6 +100,9 @@
                   </Table>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="products_tblMouseClicked"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -118,6 +121,7 @@
               <Group type="102" alignment="1" attributes="0">
                   <EmptySpace pref="21" max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                      <Component id="transfer_btn" alignment="0" max="32767" attributes="0"/>
                       <Group type="102" attributes="0">
                           <EmptySpace min="1" pref="1" max="-2" attributes="0"/>
                           <Component id="addProduct_btn" max="32767" attributes="0"/>
@@ -195,7 +199,9 @@
                   <Component id="filter_btn" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="clearFilters_combox" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="159" max="32767" attributes="0"/>
+                  <EmptySpace pref="120" max="32767" attributes="0"/>
+                  <Component id="transfer_btn" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Component id="delete_btn" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="addProduct_btn" min="-2" max="-2" attributes="0"/>
@@ -327,6 +333,14 @@
             </Property>
             <Property name="text" type="java.lang.String" value="Category"/>
           </Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="transfer_btn">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Transfer"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="transfer_btnActionPerformed"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>

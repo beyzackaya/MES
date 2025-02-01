@@ -11,6 +11,49 @@ import java.util.Optional;
 
 public class ProductionDatabase {
 
+    public int getStockForProduct(int warehouseId, int productId) {
+        String query = "SELECT quantity_in_stock FROM warehouse_stock WHERE warehouse_id = ? AND product_id = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, warehouseId);
+            stmt.setInt(2, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("quantity_in_stock");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;  // Eğer stok bilgisi yoksa 0 döner
+    }
+
+    private static void updateWarehouseStockAfterProduction(int productionId) {
+        String query = "SELECT product_id, warehouse_id, quantity_produced FROM production WHERE production_id = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productionId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int productId = rs.getInt("product_id");
+                int warehouseId = rs.getInt("warehouse_id");
+                int quantityProduced = rs.getInt("quantity_produced");
+
+                // WarehouseDatabase içindeki stok güncelleme metodunu çağır
+                WarehouseDatabase warehouseDb = new WarehouseDatabase();
+                boolean success = warehouseDb.updateOrInsertWarehouseStock(warehouseId, productId, quantityProduced);
+
+                if (success) {
+                    System.out.println("Stok güncellendi: Ürün ID = " + productId + ", Depo ID = " + warehouseId + ", Üretilen Miktar = " + quantityProduced);
+                } else {
+                    System.out.println("Stok güncellenirken hata oluştu!");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static List<Production> getProductionsByStatus(String status) {
         List<Production> productions = new ArrayList<>();
         try {
@@ -66,16 +109,27 @@ public class ProductionDatabase {
     public static boolean updateProductionStatus2(int productionId, String status) {
         String query = "UPDATE production SET status = ?, end_date = ? WHERE production_id = ?";
         try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, status);
 
+            pstmt.setString(1, status);
             if ("Completed".equals(status)) {
                 pstmt.setDate(2, new java.sql.Date(System.currentTimeMillis()));
             } else {
                 pstmt.setNull(2, java.sql.Types.DATE);
             }
-
             pstmt.setInt(3, productionId);
             int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0 && "Completed".equals(status)) {
+                // Üretim tamamlandıysa warehouse_stock tablosunu güncelle
+                updateWarehouseStockAfterProduction(productionId);
+            }
+            if (rowsAffected > 0 && "Completed".equals(status)) {
+                updateWarehouseStockAfterProduction(productionId);
+
+                WarehouseDatabase warehouseDb = new WarehouseDatabase();
+
+            }
+
             return rowsAffected > 0;
         } catch (SQLException ex) {
             ex.printStackTrace();

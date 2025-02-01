@@ -14,6 +14,7 @@ import mes.Database.DatabaseConnector;
 import mes.Database.ProductDatabase;
 import mes.model.Product;
 
+
 public class Products extends javax.swing.JFrame {
 
     public Products() {
@@ -263,6 +264,7 @@ public class Products extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        transfer_btn = new javax.swing.JButton();
 
         menu1.setLabel("File");
         menuBar1.add(menu1);
@@ -285,6 +287,11 @@ public class Products extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        products_tbl.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                products_tblMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(products_tbl);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -358,6 +365,13 @@ public class Products extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("Helvetica Neue", 0, 18)); // NOI18N
         jLabel5.setText("Category");
 
+        transfer_btn.setText("Transfer");
+        transfer_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                transfer_btnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -365,6 +379,7 @@ public class Products extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(21, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(transfer_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(1, 1, 1)
                         .addComponent(addProduct_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -423,7 +438,9 @@ public class Products extends javax.swing.JFrame {
                 .addComponent(filter_btn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(clearFilters_combox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 159, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 120, Short.MAX_VALUE)
+                .addComponent(transfer_btn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(delete_btn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(addProduct_btn)
@@ -466,7 +483,29 @@ public class Products extends javax.swing.JFrame {
     private void delete_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_btnActionPerformed
         deleteProduct();
     }//GEN-LAST:event_delete_btnActionPerformed
-    private void loadTable() {
+
+    private void transfer_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transfer_btnActionPerformed
+        // TODO add your handling code here:
+         int selectedRow = products_tbl.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin!");
+        return;
+    }
+
+    int productId = (int) products_tbl.getValueAt(selectedRow, 0);
+    String productName = (String) products_tbl.getValueAt(selectedRow, 1);
+
+    Transfer transferForm = new Transfer(productId, productName);
+    transferForm.setVisible(true);
+        
+    }//GEN-LAST:event_transfer_btnActionPerformed
+
+    private void products_tblMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_products_tblMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_products_tblMouseClicked
+    
+
+    void loadTable() {
         try {
             ProductDatabase productDatabase = new ProductDatabase();
             List<Product> products = productDatabase.getAllProducts();
@@ -544,5 +583,6 @@ public class Products extends javax.swing.JFrame {
     private javax.swing.JTextField productname_txt;
     private javax.swing.JTable products_tbl;
     private javax.swing.JComboBox<String> stock_combox;
+    private javax.swing.JButton transfer_btn;
     // End of variables declaration//GEN-END:variables
 }

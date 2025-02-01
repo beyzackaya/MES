@@ -8,9 +8,29 @@ import java.util.ArrayList;
 import java.util.List;
 import mes.model.WarehouseTransfer;
 
-public class WarehouseTransferId {
+public class WarehouseTransferDAO {
 
     WarehouseTransfer warehouseTransfer = null;
+    
+    public void addTransfer(WarehouseTransfer transfer) {
+    String query = "INSERT INTO warehouse_transfer (from_warehouse_id, to_warehouse_id, product_id, quantity_transferred, transfer_date) VALUES (?, ?, ?, ?, ?)";
+
+    try (Connection conn = DatabaseConnector.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+        pstmt.setInt(1, transfer.getWarehouseTransferFromWarehouseId());
+        pstmt.setInt(2, transfer.getWarehouseTransferId());
+        pstmt.setInt(3, transfer.getWarehouseTransferProductId());
+        pstmt.setInt(4, transfer.getWarehouseTransferQuantityTransferred());
+        pstmt.setDate(5, new java.sql.Date(transfer.getWarehouseTransferDate().getTime()));
+
+        // Sorguyu çalıştırıyoruz
+        pstmt.executeUpdate();
+        
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+}
 
     public List<WarehouseTransfer> getAllWarehouseTransfer() {
         List<WarehouseTransfer> warehouseTransfers = new ArrayList<>();

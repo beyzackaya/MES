@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 import mes.Database.ProductDatabase;
 import mes.Database.ProductionDatabase;
 import mes.Database.RawMaterialDatabase;
-import mes.Database.WareHouseDatabase;
+import mes.Database.WarehouseDatabase;
 import mes.model.WareHouse;
 import mes.model.Product;
 import mes.model.RawMaterial;
@@ -75,7 +75,7 @@ public class WorkOrders extends javax.swing.JFrame {
 
     private void loadWarehouses() {
         try {
-            WareHouseDatabase warehouseDatabase = new WareHouseDatabase();
+            WarehouseDatabase warehouseDatabase = new WarehouseDatabase();
             List<WareHouse> warehouses = warehouseDatabase.getAllWarehouses();
 
             warehouse_combox.removeAllItems();

@@ -1,13 +1,23 @@
 package mes;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import mes.Database.DatabaseConnector;
 import mes.Database.ProductionDatabase;
 import static mes.Database.ProductionDatabase.updateProductionStatus;
 import static mes.Database.ProductionDatabase.updateProductionStatus2;
+import mes.Database.WarehouseDatabase;
 import mes.model.Production;
+
 
 public class givenWorkOrders extends javax.swing.JFrame {
 
@@ -53,16 +63,26 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
         if (selectedRow != -1) {
             int productionId = (int) table.getValueAt(selectedRow, 0);
+            int productId;
+            productId = (int) table.getValueAt(selectedRow, 1);
+            WarehouseDatabase warehouseDatabase=new WarehouseDatabase();
+
 
             boolean success = updateProductionStatus2(productionId, status);
+            int total=warehouseDatabase.getTotalStockForProduct(productId);
+            boolean success2 = warehouseDatabase.updateProductStock(productId, total);
 
-            if (success) {
+
+
+            if (success || success2) {
                 if ("In Production".equals(status)) {
                     updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'In Production'.");
                 } else if ("Completed".equals(status)) {
+                    
                     updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'Completed'.");
+
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Error updating production status.");
@@ -72,37 +92,39 @@ public class givenWorkOrders extends javax.swing.JFrame {
         }
     }
 
-    public void loadProductionTable(JTable table, String status) {
-        try {
-            ProductionDatabase productionDatabase = new ProductionDatabase();
+public void loadProductionTable(JTable table, String status) {
+    try {
+        ProductionDatabase productionDatabase = new ProductionDatabase();
+        WarehouseDatabase warehouseDatabase = new WarehouseDatabase();
 
-            List<Production> productions = productionDatabase.getProductionsByStatus(status);
+        List<Production> productions = productionDatabase.getProductionsByStatus(status);
 
-            DefaultTableModel model = new DefaultTableModel(new String[]{
-                "Production ID", "Product ID", "Quantity Produced", "Warehouse ID", "Raw Product ID", "Start Date", "End Date", "Status"
-            }, 0);
+        DefaultTableModel model = new DefaultTableModel(new String[]{
+            "Production ID", "Product ID", "Quantity Produced", "Warehouse Name", "Raw Product ID", "Start Date", "End Date", "Status"
+        }, 0);
 
-            for (Production p : productions) {
-                model.addRow(new Object[]{
-                    p.getProductionId(),
-                    p.getProductId(),
-                    p.getQuantityProduced(),
-                    p.getWarehouseId(),
-                    p.getRawproductId(),
-                    p.getStartDate(),
-                    p.getEndDate(),
-                    p.getStatus()
-                });
-            }
-
-            table.setModel(model);
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
+        for (Production p : productions) {
+            String warehouseName = warehouseDatabase.getWarehouseNameById(p.getWarehouseId());
+            String rawProductName=warehouseDatabase.getRawProductNameById(p.getRawproductId());
+            
+            model.addRow(new Object[]{
+                p.getProductionId(),
+                p.getProductId(),
+                p.getQuantityProduced(),
+                warehouseName, 
+                rawProductName,
+                p.getStartDate(),
+                p.getEndDate(),
+                p.getStatus()
+            });
         }
-    }
+        table.setModel(model);
 
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
+    }
+}
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -148,19 +170,18 @@ public class givenWorkOrders extends javax.swing.JFrame {
         pending_pnlLayout.setHorizontalGroup(
             pending_pnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pending_pnlLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(pending_pnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1006, Short.MAX_VALUE)
-                    .addGroup(pending_pnlLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(process_btn)))
+                .addContainerGap(926, Short.MAX_VALUE)
+                .addComponent(process_btn)
                 .addGap(28, 28, 28))
+            .addGroup(pending_pnlLayout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 866, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         pending_pnlLayout.setVerticalGroup(
             pending_pnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pending_pnlLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 521, Short.MAX_VALUE)
+                .addContainerGap(16, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 511, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(process_btn)
                 .addGap(15, 15, 15))
@@ -262,15 +283,93 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+// Hammadde stoğunu kontrol et
+public boolean checkRawMaterialStock(int productId, int requiredQuantity) {
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
 
+    try {
+        conn = DatabaseConnector.getConnection(); // Bağlantıyı al
+        String sql = "SELECT quantity_in_stock FROM raw_materials WHERE product_id = ?";
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, productId);
+        rs = pstmt.executeQuery();
+
+        if (rs.next()) {
+            int availableStock = rs.getInt("quantity_in_stock");
+            return availableStock >= requiredQuantity;
+        }
+        return false;
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        return false;
+    } finally {
+        try {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+}
+
+// Hammadde stoğunu güncelle
+public void reduceRawMaterialStock(int productId, int requiredQuantity) throws SQLException {
+    Connection conn = DatabaseConnector.getConnection(); // Veritabanı bağlantısını al
+    String sql = "UPDATE raw_materials SET quantity_in_stock = quantity_in_stock - ? WHERE product_id = ?";
+
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setInt(1, requiredQuantity);
+        pstmt.setInt(2, productId);
+        pstmt.executeUpdate();
+    } finally {
+        if (conn != null) conn.close(); // Bağlantıyı kapat
+    }
+}
     private void process_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_process_btnActionPerformed
+        int selectedRow = givenWorkOrderstbl.getSelectedRow();
+
+    if (selectedRow != -1) {
+        // Seçilen üretim emrini al
+        int productionId = (int) givenWorkOrderstbl.getValueAt(selectedRow, 1);
+        int productId = (int) givenWorkOrderstbl.getValueAt(selectedRow, 2);
+        int requiredRawMaterial = (int) givenWorkOrderstbl.getValueAt(selectedRow, 4); // Hammadde miktarı
+
+        // Üretim için gerekli hammadde miktarını hesapla
+        int productQuantity = (int) givenWorkOrderstbl.getValueAt(selectedRow, 3); // Ürün miktarı
+        int totalRequiredMaterial = requiredRawMaterial * productQuantity;
+
+        // Hammadde stoğunu kontrol et
+        if (!checkRawMaterialStock(productId, totalRequiredMaterial)) {
+            JOptionPane.showMessageDialog(this, "Yetersiz ham madde stoğu!");
+            return;
+        }
+
+        // Hammadde stoğunu düşür
+        try {
+            reduceRawMaterialStock(productId, totalRequiredMaterial);
+        } catch (SQLException ex) {
+            Logger.getLogger(givenWorkOrders.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Hammadde stoğu güncellenemedi!");
+            return;
+        }
+
+        // Üretim durumunu güncelle
         updateProductionStatusForSelectedRow(givenWorkOrderstbl, "In Production");
+    } else {
+        JOptionPane.showMessageDialog(this, "Lütfen bir üretim emri seçin.");
+    }
+       
 
     }//GEN-LAST:event_process_btnActionPerformed
 
     private void completed_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_completed_btnActionPerformed
-        updateProductionStatusForSelectedRow2(inProces_tbl, "Completed");
+           updateProductionStatusForSelectedRow2(inProces_tbl, "Completed");
+           
 
+       
     }//GEN-LAST:event_completed_btnActionPerformed
 
     public static void main(String args[]) {
