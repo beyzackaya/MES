@@ -12,28 +12,11 @@ public class WarehouseDatabase {
 
     WareHouse warehouses = null;
 
-    public boolean updateProductStock(int productId, int newStock) {
-        String updateQuery = "UPDATE Products SET product_stock = ? WHERE product_id = ? ";
-
-        try (Connection conn = DatabaseConnector.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
-            stmt.setInt(1, newStock);  
-            stmt.setInt(2, productId); 
-
-            int rowsUpdated = stmt.executeUpdate();
-
-            return rowsUpdated > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
     public int getTotalStockForProduct(int productId) {
         String query = "SELECT SUM(quantity_in_stock) AS total_stock FROM warehouse_stock WHERE product_id = ?";
 
-        try (Connection conn = DatabaseConnector.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, productId);
             ResultSet rs = stmt.executeQuery();
@@ -45,7 +28,7 @@ public class WarehouseDatabase {
             e.printStackTrace();
         }
 
-        return 0; // Eğer stok bulunamazsa 0 döndür
+        return 0;
     }
 //    public boolean updateProductTotalStock(int productId) {
 //    String query = "SELECT SUM(quantity_in_stock) AS total_stock FROM warehouse_stock WHERE product_id = ?";
@@ -75,14 +58,10 @@ public class WarehouseDatabase {
 
     public boolean updateOrInsertWarehouseStock(int warehouseId, int productId, int quantity) {
         String checkQuery = "SELECT quantity_in_stock FROM warehouse_stock WHERE warehouse_id = ? AND product_id = ?";
-String updateQuery = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE product_id = ?";
-String insertQuery = "INSERT INTO warehouse_stock (warehouse_id, product_id, quantity_in_stock) VALUES (?, ?, ?)";
+        String updateQuery = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE product_id = ?";
+        String insertQuery = "INSERT INTO warehouse_stock (warehouse_id, product_id, quantity_in_stock) VALUES (?, ?, ?)";
 
-        try (Connection conn = DatabaseConnector.getConnection(); 
-                PreparedStatement checkStmt = conn.prepareStatement(checkQuery); 
-                PreparedStatement updateStmt = conn.prepareStatement(updateQuery); 
-                PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
-
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
 
             checkStmt.setInt(1, warehouseId);
             checkStmt.setInt(2, productId);
@@ -104,92 +83,103 @@ String insertQuery = "INSERT INTO warehouse_stock (warehouse_id, product_id, qua
             return false;
         }
     }
+//
+//    public boolean updateStockQuantity(int warehouseId, int productId, int newQuantity) {
+//        String query = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE warehouse_id = ? AND product_id = ?";
+//
+//        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+//            stmt.setInt(1, newQuantity);
+//            stmt.setInt(2, warehouseId);
+//            stmt.setInt(3, productId);
+//            int rowsAffected = stmt.executeUpdate();
+//            return rowsAffected > 0;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
+//
+//    public int getStockForProduct(int warehouseId, int productId) {
+//        String query = "SELECT quantity_in_stock FROM warehouse_stock WHERE warehouse_id = ? AND product_id = ?";
+//
+//        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+//            stmt.setInt(1, warehouseId);
+//            stmt.setInt(2, productId);
+//            ResultSet rs = stmt.executeQuery();
+//            if (rs.next()) {
+//                return rs.getInt("quantity_in_stock");
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return 0;
+//    }
+        public boolean updateProductStock(int productId, int newStock) {
+        String updateQuery = "UPDATE Products SET product_stock = ? WHERE product_id = ? ";
+        
 
-    public boolean updateStockQuantity(int warehouseId, int productId, int newQuantity) {
-        // SQL sorgusunu yazarak depo stoğunu güncelleyin
-        String query = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE warehouse_id = ? AND product_id = ?";
-
-        try (Connection conn = DatabaseConnector.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, newQuantity);
-            stmt.setInt(2, warehouseId);
-            stmt.setInt(3, productId);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public int getStockForProduct(int warehouseId, int productId) {
-        String query = "SELECT quantity_in_stock FROM warehouse_stock WHERE warehouse_id = ? AND product_id = ?";
-
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, warehouseId);
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
+            stmt.setInt(1, newStock);
             stmt.setInt(2, productId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("quantity_in_stock");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;  // Eğer stok bilgisi yoksa 0 döner
-    }
 
-    public boolean processTransfer(int productId, int fromWarehouseId, int toWarehouseId, int transferQuantity) {
-        // Kaynak depodan stok azaltma
-        int fromWarehouseStock = getStockForProduct(fromWarehouseId, productId);
-        System.out.println("Kaynak depo stok: " + fromWarehouseStock);
+            int rowsUpdated = stmt.executeUpdate();
 
-        int newFromWarehouseStock = fromWarehouseStock - transferQuantity;
-        System.out.println("Yeni kaynak depo stok: " + newFromWarehouseStock);
-
-        // Hedef depodan stok artırma
-        int toWarehouseStock = getStockForProduct(toWarehouseId, productId);
-        System.out.println("Hedef depo stok: " + toWarehouseStock);
-
-        int newToWarehouseStock = toWarehouseStock + transferQuantity;
-        System.out.println("Yeni hedef depo stok: " + newToWarehouseStock);
-
-        // Transferi oluştur
-        if (createTransfer(productId, fromWarehouseId, toWarehouseId, transferQuantity)) {
-            System.out.println("Transfer kaydı oluşturuldu.");
-
-            // Kaynak ve hedef depo stoklarını güncelle
-            boolean fromUpdated = updateStockQuantity(fromWarehouseId, productId, newFromWarehouseStock);
-            boolean toUpdated = updateStockQuantity(toWarehouseId, productId, newToWarehouseStock);
-
-            if (fromUpdated && toUpdated) {
-                System.out.println("Stok güncellemeleri başarılı.");
-                return true;
-            } else {
-                System.out.println("Stok güncellemeleri başarısız.");
-            }
-        } else {
-            System.out.println("Transfer kaydı oluşturulamadı.");
-        }
-
-        return false;
-    }
-
-    public boolean createTransfer(int productId, int fromWarehouseId, int toWarehouseId, int quantity) {
-        String query = "INSERT INTO warehouse_transfer (product_id, from_warehouse_id, to_warehouse_id, quantity_transferred, transfer_date, transfer_status) VALUES (?, ?, ?, ?, NOW(), 'Pending')";
-
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, productId);
-            stmt.setInt(2, fromWarehouseId);
-            stmt.setInt(3, toWarehouseId);
-            stmt.setInt(4, quantity);
-
-            return stmt.executeUpdate() > 0;
+            return rowsUpdated > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
-    
+//
+//
+//    public boolean processTransfer(int productId, int fromWarehouseId, int toWarehouseId, int transferQuantity) {
+//        int fromWarehouseStock = getStockForProduct(fromWarehouseId, productId);
+//        System.out.println("Kaynak depo stok: " + fromWarehouseStock);
+//
+//        int newFromWarehouseStock = fromWarehouseStock - transferQuantity;
+//        System.out.println("Yeni kaynak depo stok: " + newFromWarehouseStock);
+//
+//        int toWarehouseStock = getStockForProduct(toWarehouseId, productId);
+//        System.out.println("Hedef depo stok: " + toWarehouseStock);
+//
+//        int newToWarehouseStock = toWarehouseStock + transferQuantity;
+//        System.out.println("Yeni hedef depo stok: " + newToWarehouseStock);
+//
+//        if (createTransfer(productId, fromWarehouseId, toWarehouseId, transferQuantity)) {
+//            System.out.println("Transfer kaydı oluşturuldu.");
+//
+//            boolean fromUpdated = updateStockQuantity(fromWarehouseId, productId, newFromWarehouseStock);
+//            boolean toUpdated = updateStockQuantity(toWarehouseId, productId, newToWarehouseStock);
+//
+//            if (fromUpdated && toUpdated) {
+//                System.out.println("Stok güncellemeleri başarılı.");
+//                return true;
+//            } else {
+//                System.out.println("Stok güncellemeleri başarısız.");
+//            }
+//        } else {
+//            System.out.println("Transfer kaydı oluşturulamadı.");
+//        }
+//
+//        return false;
+//    }
+//
+//    public boolean createTransfer(int productId, int fromWarehouseId, int toWarehouseId, int quantity) {
+//        String query = "INSERT INTO warehouse_transfer (product_id, from_warehouse_id, to_warehouse_id, quantity_transferred, transfer_date, transfer_status) VALUES (?, ?, ?, ?, NOW(), 'Pending')";
+//
+//        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+//            stmt.setInt(1, productId);
+//            stmt.setInt(2, fromWarehouseId);
+//            stmt.setInt(3, toWarehouseId);
+//            stmt.setInt(4, quantity);
+//
+//            return stmt.executeUpdate() > 0;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
+
     public String getWarehouseNameById(int warehouseId) {
         String warehouseName = null;
         String query = "SELECT warehouse_name FROM warehouses WHERE warehouse_id = ?";
@@ -207,7 +197,6 @@ String insertQuery = "INSERT INTO warehouse_stock (warehouse_id, product_id, qua
 
     public String getRawProductNameById(int rawProductId) {
         String rawProductName = null;
-        // SQL sorgusuyla warehouseId'ye göre warehouseName alınıyor.
         String query = "SELECT rawproduct_name FROM raw_material WHERE rawproduct_id = ?";
         try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, rawProductId);
@@ -236,7 +225,6 @@ String insertQuery = "INSERT INTO warehouse_stock (warehouse_id, product_id, qua
         }
         return -1;
     }
-
 
     public List<WareHouse> getAllWarehouses() {
         List<WareHouse> warehouse = new ArrayList<>();

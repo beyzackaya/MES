@@ -16,8 +16,8 @@ import mes.Database.ProductionDatabase;
 import static mes.Database.ProductionDatabase.updateProductionStatus;
 import static mes.Database.ProductionDatabase.updateProductionStatus2;
 import mes.Database.WarehouseDatabase;
+import mes.Database.ProductDatabase;
 import mes.model.Production;
-
 
 public class givenWorkOrders extends javax.swing.JFrame {
 
@@ -34,27 +34,141 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
     }
 
+    private int getProductIdByProductionId(int productionId) {
+        String query = "SELECT product_id FROM production WHERE production_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productionId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("product_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private int getProductionQuantityById(int productionId) {
+        String query = "SELECT quantity_produced FROM production WHERE production_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productionId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("quantity_produced");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private int getRawMaterialIdByProductId(int productId) {
+        String query = "SELECT rawproduct_id FROM product_raw_material WHERE product_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("rawproduct_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private int getRequiredRawMaterialQuantity(int productId) {
+        String query = "SELECT quantity_required FROM product_raw_material WHERE product_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("quantity_required");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private int getRawMaterialStock(int rawMaterialId) {
+        String query = "SELECT rawproduct_stock FROM raw_material WHERE rawproduct_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, rawMaterialId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("rawproduct_stock");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private void reduceRawMaterialStock(int rawMaterialId, int quantityToReduce) {
+        String query = "UPDATE raw_material SET rawproduct_stock = rawproduct_stock - ? WHERE rawproduct_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, quantityToReduce);
+            stmt.setInt(2, rawMaterialId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getRawProductIdByName(int rawProductId) {
+        String rawProductID = null;
+        String query = "SELECT rawproduct_id FROM raw_material WHERE rawproduct_name = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, rawProductId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                rawProductID = rs.getString("rawproduct_id");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return rawProductID;
+    }
+
     private void updateProductionStatusForSelectedRow(JTable table, String status) {
         int selectedRow = table.getSelectedRow();
 
         if (selectedRow != -1) {
             int productionId = (int) table.getValueAt(selectedRow, 0);
+            int productId = getProductIdByProductionId(productionId);
+            int productionQuantity = getProductionQuantityById(productionId);
+            int rawMaterialId = getRawMaterialIdByProductId(productId);
 
-            boolean success = updateProductionStatus(productionId, status);
+            if (rawMaterialId != -1) {
+                int requiredRawMaterialPerUnit = getRequiredRawMaterialQuantity(productId);
+                int totalRequiredRawMaterial = productionQuantity * requiredRawMaterialPerUnit;
 
-            if (success) {
-                if ("In Production".equals(status)) {
-                    updateTable();
-                    JOptionPane.showMessageDialog(this, "Production status updated to 'In Production'.");
-                } else if ("Completed".equals(status)) {
-                    updateTable();
-                    JOptionPane.showMessageDialog(this, "Production status updated to 'Completed'.");
+                int currentRawStock = getRawMaterialStock(rawMaterialId);
+
+                if (currentRawStock >= totalRequiredRawMaterial) {
+                    boolean success = updateProductionStatus(productionId, status);
+
+                    if (success) {
+                        if ("In Production".equals(status)) {
+                            reduceRawMaterialStock(rawMaterialId, totalRequiredRawMaterial);
+
+                            updateTable();
+                            JOptionPane.showMessageDialog(this, "Production status updated to 'In Production'.");
+                        } else if ("Completed".equals(status)) {
+                            updateTable();
+                            JOptionPane.showMessageDialog(this, "Production status updated to 'Completed'.");
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Error updating production status.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Yetersiz hammadde stoğu! Üretim başlatılamadı.", "Uyarı", JOptionPane.WARNING_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Error updating production status.");
+                JOptionPane.showMessageDialog(this, "Bu ürün için bağlı bir hammadde bulunamadı.", "Hata", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Please select a production to process.");
+            JOptionPane.showMessageDialog(this, "Lütfen işleme almak için bir üretim seçin!");
         }
     }
 
@@ -63,23 +177,19 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
         if (selectedRow != -1) {
             int productionId = (int) table.getValueAt(selectedRow, 0);
-            int productId;
-            productId = (int) table.getValueAt(selectedRow, 1);
-            WarehouseDatabase warehouseDatabase=new WarehouseDatabase();
-
+            int productId = getProductIdByProductionId(productionId);
+            WarehouseDatabase warehouseDatabase = new WarehouseDatabase();
 
             boolean success = updateProductionStatus2(productionId, status);
-            int total=warehouseDatabase.getTotalStockForProduct(productId);
+            int total = warehouseDatabase.getTotalStockForProduct(productId);
             boolean success2 = warehouseDatabase.updateProductStock(productId, total);
-
-
 
             if (success || success2) {
                 if ("In Production".equals(status)) {
                     updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'In Production'.");
                 } else if ("Completed".equals(status)) {
-                    
+
                     updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'Completed'.");
 
@@ -92,39 +202,42 @@ public class givenWorkOrders extends javax.swing.JFrame {
         }
     }
 
-public void loadProductionTable(JTable table, String status) {
-    try {
-        ProductionDatabase productionDatabase = new ProductionDatabase();
-        WarehouseDatabase warehouseDatabase = new WarehouseDatabase();
+    public void loadProductionTable(JTable table, String status) {
+        try {
+            ProductionDatabase productionDatabase = new ProductionDatabase();
+            WarehouseDatabase warehouseDatabase = new WarehouseDatabase();
+            ProductDatabase productDatabase = new ProductDatabase();
 
-        List<Production> productions = productionDatabase.getProductionsByStatus(status);
+            List<Production> productions = productionDatabase.getProductionsByStatus(status);
 
-        DefaultTableModel model = new DefaultTableModel(new String[]{
-            "Production ID", "Product ID", "Quantity Produced", "Warehouse Name", "Raw Product ID", "Start Date", "End Date", "Status"
-        }, 0);
+            DefaultTableModel model = new DefaultTableModel(new String[]{
+                "Production ID", "Product Name", "Quantity Produced", "Warehouse Name", "Raw Product ID", "Start Date", "End Date", "Status"
+            }, 0);
 
-        for (Production p : productions) {
-            String warehouseName = warehouseDatabase.getWarehouseNameById(p.getWarehouseId());
-            String rawProductName=warehouseDatabase.getRawProductNameById(p.getRawproductId());
-            
-            model.addRow(new Object[]{
-                p.getProductionId(),
-                p.getProductId(),
-                p.getQuantityProduced(),
-                warehouseName, 
-                rawProductName,
-                p.getStartDate(),
-                p.getEndDate(),
-                p.getStatus()
-            });
+            for (Production p : productions) {
+                String productName = productDatabase.getProductNameById(p.getProductId());
+                String warehouseName = warehouseDatabase.getWarehouseNameById(p.getWarehouseId());
+                String rawProductName = warehouseDatabase.getRawProductNameById(p.getRawproductId());
+
+                model.addRow(new Object[]{
+                    p.getProductionId(),
+                    productName,
+                    p.getQuantityProduced(),
+                    warehouseName,
+                    rawProductName,
+                    p.getStartDate(),
+                    p.getEndDate(),
+                    p.getStatus()
+                });
+            }
+            table.setModel(model);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
         }
-        table.setModel(model);
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
     }
-}
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -284,92 +397,54 @@ public void loadProductionTable(JTable table, String status) {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 // Hammadde stoğunu kontrol et
-public boolean checkRawMaterialStock(int productId, int requiredQuantity) {
-    Connection conn = null;
-    PreparedStatement pstmt = null;
-    ResultSet rs = null;
 
-    try {
-        conn = DatabaseConnector.getConnection(); // Bağlantıyı al
-        String sql = "SELECT quantity_in_stock FROM raw_materials WHERE product_id = ?";
-        pstmt = conn.prepareStatement(sql);
-        pstmt.setInt(1, productId);
-        rs = pstmt.executeQuery();
+//    public boolean checkRawMaterialStock(int productId, int requiredQuantity) {
+//        Connection conn = null;
+//        PreparedStatement pstmt = null;
+//        ResultSet rs = null;
+//
+//        try {
+//            conn = DatabaseConnector.getConnection(); // Bağlantıyı al
+//            String sql = "SELECT quantity_in_stock FROM raw_materials WHERE product_id = ?";
+//            pstmt = conn.prepareStatement(sql);
+//            pstmt.setInt(1, productId);
+//            rs = pstmt.executeQuery();
+//
+//            if (rs.next()) {
+//                int availableStock = rs.getInt("quantity_in_stock");
+//                return availableStock >= requiredQuantity;
+//            }
+//            return false;
+//        } catch (SQLException ex) {
+//            ex.printStackTrace();
+//            return false;
+//        } finally {
+//            try {
+//                if (rs != null) {
+//                    rs.close();
+//                }
+//                if (pstmt != null) {
+//                    pstmt.close();
+//                }
+//                if (conn != null) {
+//                    conn.close();
+//                }
+//            } catch (SQLException ex) {
+//                ex.printStackTrace();
+//            }
+//        }
+//    }
 
-        if (rs.next()) {
-            int availableStock = rs.getInt("quantity_in_stock");
-            return availableStock >= requiredQuantity;
-        }
-        return false;
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        return false;
-    } finally {
-        try {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) conn.close();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
-}
-
-// Hammadde stoğunu güncelle
-public void reduceRawMaterialStock(int productId, int requiredQuantity) throws SQLException {
-    Connection conn = DatabaseConnector.getConnection(); // Veritabanı bağlantısını al
-    String sql = "UPDATE raw_materials SET quantity_in_stock = quantity_in_stock - ? WHERE product_id = ?";
-
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-        pstmt.setInt(1, requiredQuantity);
-        pstmt.setInt(2, productId);
-        pstmt.executeUpdate();
-    } finally {
-        if (conn != null) conn.close(); // Bağlantıyı kapat
-    }
-}
     private void process_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_process_btnActionPerformed
-        int selectedRow = givenWorkOrderstbl.getSelectedRow();
-
-    if (selectedRow != -1) {
-        // Seçilen üretim emrini al
-        int productionId = (int) givenWorkOrderstbl.getValueAt(selectedRow, 1);
-        int productId = (int) givenWorkOrderstbl.getValueAt(selectedRow, 2);
-        int requiredRawMaterial = (int) givenWorkOrderstbl.getValueAt(selectedRow, 4); // Hammadde miktarı
-
-        // Üretim için gerekli hammadde miktarını hesapla
-        int productQuantity = (int) givenWorkOrderstbl.getValueAt(selectedRow, 3); // Ürün miktarı
-        int totalRequiredMaterial = requiredRawMaterial * productQuantity;
-
-        // Hammadde stoğunu kontrol et
-        if (!checkRawMaterialStock(productId, totalRequiredMaterial)) {
-            JOptionPane.showMessageDialog(this, "Yetersiz ham madde stoğu!");
-            return;
-        }
-
-        // Hammadde stoğunu düşür
-        try {
-            reduceRawMaterialStock(productId, totalRequiredMaterial);
-        } catch (SQLException ex) {
-            Logger.getLogger(givenWorkOrders.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(this, "Hammadde stoğu güncellenemedi!");
-            return;
-        }
-
-        // Üretim durumunu güncelle
         updateProductionStatusForSelectedRow(givenWorkOrderstbl, "In Production");
-    } else {
-        JOptionPane.showMessageDialog(this, "Lütfen bir üretim emri seçin.");
-    }
-       
+
 
     }//GEN-LAST:event_process_btnActionPerformed
 
     private void completed_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_completed_btnActionPerformed
-           updateProductionStatusForSelectedRow2(inProces_tbl, "Completed");
-           
+        updateProductionStatusForSelectedRow2(inProces_tbl, "Completed");
 
-       
+
     }//GEN-LAST:event_completed_btnActionPerformed
 
     public static void main(String args[]) {

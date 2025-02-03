@@ -152,7 +152,7 @@ public class Products extends javax.swing.JFrame {
                     DefaultTableModel model = (DefaultTableModel) products_tbl.getModel();
                     model.removeRow(selectedRow);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Ürün silinemedi! Veritabanı hatası olabilir.");
+                JOptionPane.showMessageDialog(null, "Ürün üretimde olduğu için silinemez!", "Uyarı", JOptionPane.WARNING_MESSAGE);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -265,6 +265,7 @@ public class Products extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         transfer_btn = new javax.swing.JButton();
+        createOrder_btn = new javax.swing.JButton();
 
         menu1.setLabel("File");
         menuBar1.add(menu1);
@@ -372,6 +373,13 @@ public class Products extends javax.swing.JFrame {
             }
         });
 
+        createOrder_btn.setText("Create Order");
+        createOrder_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createOrder_btnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -408,7 +416,8 @@ public class Products extends javax.swing.JFrame {
                                             .addComponent(stock_combox, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                             .addComponent(color_combox, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                     .addComponent(clearFilters_combox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                        .addComponent(delete_btn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 241, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(delete_btn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 241, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(createOrder_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -442,9 +451,11 @@ public class Products extends javax.swing.JFrame {
                 .addComponent(transfer_btn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(delete_btn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(addProduct_btn)
-                .addGap(111, 111, 111))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(createOrder_btn)
+                .addGap(66, 66, 66))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -503,6 +514,22 @@ public class Products extends javax.swing.JFrame {
     private void products_tblMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_products_tblMouseClicked
         // TODO add your handling code here:
     }//GEN-LAST:event_products_tblMouseClicked
+
+    private void createOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createOrder_btnActionPerformed
+        // TODO add your handling code here:
+         int selectedRow = products_tbl.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin!");
+        return;
+    }
+
+    int productId = (int) products_tbl.getValueAt(selectedRow, 0);
+    String productName = (String) products_tbl.getValueAt(selectedRow, 1);
+
+    AddBasket addBasket = new AddBasket(productId, productName);
+    addBasket.setVisible(true);
+        
+    }//GEN-LAST:event_createOrder_btnActionPerformed
     
 
     void loadTable() {
@@ -565,6 +592,7 @@ public class Products extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> category_combox;
     private javax.swing.JButton clearFilters_combox;
     private javax.swing.JComboBox<String> color_combox;
+    private javax.swing.JButton createOrder_btn;
     private javax.swing.JButton delete_btn;
     private javax.swing.JButton filter_btn;
     private javax.swing.JComboBox<String> gender_combox;

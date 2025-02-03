@@ -43,5 +43,31 @@ public class OrderDatabase {
         }
         return orders;
     }
+    public String getExistingEnumValues() throws SQLException {
+        Connection conn = DatabaseConnector.getConnection();
+        String sql = "SHOW COLUMNS FROM orders LIKE 'company_name';";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        ResultSet rs = stmt.executeQuery();
+
+        StringBuilder enumValues = new StringBuilder();
+        if (rs.next()) {
+            String enumType = rs.getString("Type");
+            enumType = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')'));
+            String[] enumArr = enumType.split(",");
+            for (String value : enumArr) {
+                enumValues.append("'").append(value.replace("'", "").trim()).append("',");
+            }
+        }
+
+        rs.close();
+        stmt.close();
+        conn.close();
+
+        if (enumValues.length() > 0) {
+            enumValues.deleteCharAt(enumValues.length() - 1);
+        }
+
+        return enumValues.toString();
+    }
 
 }

@@ -27,21 +27,20 @@ public class newProduct extends javax.swing.JFrame {
 
     private void loadCategories() {
         try {
-            // Veritabanı bağlantısı
-            Connection conn = DatabaseConnector.getConnection(); 
-            String sql = "SHOW COLUMNS FROM products LIKE 'product_category';"; 
+            Connection conn = DatabaseConnector.getConnection();
+            String sql = "SHOW COLUMNS FROM products LIKE 'product_category';";
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             ArrayList<String> categories = new ArrayList<>();
 
             if (rs.next()) {
-                String enumType = rs.getString("Type"); 
-                enumType = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')')); 
+                String enumType = rs.getString("Type");
+                enumType = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')'));
                 String[] enumValues = enumType.split(",");
 
                 for (String value : enumValues) {
-                    categories.add(value.replace("'", "").trim()); 
+                    categories.add(value.replace("'", "").trim());
                 }
             }
 
@@ -62,17 +61,17 @@ public class newProduct extends javax.swing.JFrame {
 
     private void loadGenders() {
         try {
-            Connection conn = DatabaseConnector.getConnection(); 
-            String sql = "SHOW COLUMNS FROM products LIKE 'product_gender';"; 
+            Connection conn = DatabaseConnector.getConnection();
+            String sql = "SHOW COLUMNS FROM products LIKE 'product_gender';";
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             ArrayList<String> categories = new ArrayList<>();
 
             if (rs.next()) {
-                String enumType = rs.getString("Type"); 
-                enumType = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')')); 
-                String[] enumValues = enumType.split(","); 
+                String enumType = rs.getString("Type");
+                enumType = enumType.substring(enumType.indexOf('(') + 1, enumType.indexOf(')'));
+                String[] enumValues = enumType.split(",");
 
                 for (String value : enumValues) {
                     categories.add(value.replace("'", "").trim());
@@ -342,10 +341,9 @@ public class newProduct extends javax.swing.JFrame {
                     return;
                 }
 
-                
                 ProductDatabase db = new ProductDatabase();
-                Products productsColorProducts=new Products();
-                String a=productsColorProducts.capitalizeFirstLetter(productColor.toLowerCase());
+                Products productsColorProducts = new Products();
+                String a = productsColorProducts.capitalizeFirstLetter(productColor.toLowerCase());
                 boolean success = db.addProduct(productName, productGender, a, 0,
                         productCategory, salePrice, rawProductId, requiredRawQuantity);
 

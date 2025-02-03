@@ -11,24 +11,37 @@ import mes.model.WarehouseTransfer;
 public class WarehouseTransferDAO {
 
     WarehouseTransfer warehouseTransfer = null;
-    
+
     public void addTransfer(WarehouseTransfer transfer) {
-    String query = "INSERT INTO warehouse_transfer (from_warehouse_id, to_warehouse_id, product_id, quantity_transferred, transfer_date) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO warehouse_transfer (from_warehouse_id, to_warehouse_id, product_id, quantity_transferred, transfer_date) VALUES (?, ?, ?, ?, ?)";
 
-    try (Connection conn = DatabaseConnector.getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(query)) {
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
 
-        pstmt.setInt(1, transfer.getWarehouseTransferFromWarehouseId());
-        pstmt.setInt(2, transfer.getWarehouseTransferId());
-        pstmt.setInt(3, transfer.getWarehouseTransferProductId());
-        pstmt.setInt(4, transfer.getWarehouseTransferQuantityTransferred());
-        pstmt.setDate(5, new java.sql.Date(transfer.getWarehouseTransferDate().getTime()));
+            pstmt.setInt(1, transfer.getWarehouseTransferFromWarehouseId());
+            pstmt.setInt(2, transfer.getWarehouseTransferId());
+            pstmt.setInt(3, transfer.getWarehouseTransferProductId());
+            pstmt.setInt(4, transfer.getWarehouseTransferQuantityTransferred());
+            pstmt.setDate(5, new java.sql.Date(transfer.getWarehouseTransferDate().getTime()));
 
-        // Sorguyu çalıştırıyoruz
-        pstmt.executeUpdate();
-        
-    } catch (SQLException ex) {
-        ex.printStackTrace();
+            pstmt.executeUpdate();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+    public boolean addTransfer(int productId, int fromWarehouseId, int toWarehouseId, int transferQuantity) {
+    String query = "INSERT INTO warehouse_transfer (product_id, from_warehouse_id, to_warehouse_id, quantity_transferred, transfer_date, transfer_status) VALUES (?, ?, ?, ?, NOW(), 'Pending')";
+
+    try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        stmt.setInt(1, productId);
+        stmt.setInt(2, fromWarehouseId);
+        stmt.setInt(3, toWarehouseId);
+        stmt.setInt(4, transferQuantity);
+
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
     }
 }
 

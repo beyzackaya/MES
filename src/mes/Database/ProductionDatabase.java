@@ -136,6 +136,7 @@ public class ProductionDatabase {
             return false;
         }
     }
+    
 
     public Optional<Integer> getWarehouseIdByName(String warehouseName) throws SQLException {
         String query = "SELECT warehouse_id FROM warehouses WHERE warehouse_name = ?";

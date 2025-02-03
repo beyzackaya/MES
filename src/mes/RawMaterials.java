@@ -149,6 +149,7 @@ public class RawMaterials extends javax.swing.JFrame {
         Filter_btn = new javax.swing.JButton();
         clearFilters_btn = new javax.swing.JButton();
         delete_btn = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -209,6 +210,13 @@ public class RawMaterials extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("Add Raw Material");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -224,8 +232,9 @@ public class RawMaterials extends javax.swing.JFrame {
                     .addComponent(Filter_btn)
                     .addComponent(stock_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(color_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(delete_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(53, Short.MAX_VALUE))
+                    .addComponent(delete_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -242,6 +251,8 @@ public class RawMaterials extends javax.swing.JFrame {
                 .addComponent(clearFilters_btn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(delete_btn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton1)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -272,40 +283,45 @@ public class RawMaterials extends javax.swing.JFrame {
     }//GEN-LAST:event_clearFilters_btnActionPerformed
 
     private void delete_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_btnActionPerformed
-//        deleteProduct();
+        deleteProduct();
     }//GEN-LAST:event_delete_btnActionPerformed
-//private void deleteProduct() {
-//    int selectedRow = rawproducts_tbl.getSelectedRow();
-//
-//    if (selectedRow == -1) {
-//        JOptionPane.showMessageDialog(this, "Lütfen silmek için bir ürün seçin!");
-//        return;
-//    }
-//
-//    int productId = (int) rawproducts_tbl.getValueAt(selectedRow, 0);
-//
-//    int confirm = JOptionPane.showConfirmDialog(this, 
-//            "Bu ürünü silmek istediğinize emin misiniz?",
-//            "Onay", JOptionPane.YES_NO_OPTION);
-//
-//    if (confirm == JOptionPane.YES_OPTION) {
-//        try {
-//            RawMaterialDatabase db = new RawMaterialDatabase();
-//            boolean success = db.deleteProductById(productId);
-//
-//            if (success) {
-//                JOptionPane.showMessageDialog(this, "Ürün ve ilgili ham madde bilgileri başarıyla silindi!");
-//                DefaultTableModel model = (DefaultTableModel) rawproducts_tbl.getModel();
-//                model.removeRow(selectedRow);
-//            } else {
-//                JOptionPane.showMessageDialog(this, "Hammadde başka bir ürün tarafından kullanıldığı için silinemedi!");
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            JOptionPane.showMessageDialog(this, "Silme işlemi sırasında hata oluştu: " + e.getMessage());
-//        }
-//    }
-//}
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+                new NewRawMaterial().setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
+private void deleteProduct() {
+    int selectedRow = rawproducts_tbl.getSelectedRow();
+
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Lütfen silmek için bir ürün seçin!");
+        return;
+    }
+
+    int productId = (int) rawproducts_tbl.getValueAt(selectedRow, 0);
+
+    int confirm = JOptionPane.showConfirmDialog(this, 
+            "Bu ürünü silmek istediğinize emin misiniz?",
+            "Onay", JOptionPane.YES_NO_OPTION);
+
+    if (confirm == JOptionPane.YES_OPTION) {
+        try {
+            RawMaterialDatabase db = new RawMaterialDatabase();
+            boolean success = db.deleteProductById(productId);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Ürün ve ilgili ham madde bilgileri başarıyla silindi!");
+                DefaultTableModel model = (DefaultTableModel) rawproducts_tbl.getModel();
+                model.removeRow(selectedRow);
+            } else {
+                JOptionPane.showMessageDialog(this, "Hammadde başka bir ürün tarafından kullanıldığı için silinemedi!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Silme işlemi sırasında hata oluştu: " + e.getMessage());
+        }
+    }
+}
     public static void main(String args[]) {
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -341,6 +357,7 @@ public class RawMaterials extends javax.swing.JFrame {
     private javax.swing.JButton clearFilters_btn;
     private javax.swing.JComboBox<String> color_combox;
     private javax.swing.JButton delete_btn;
+    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
