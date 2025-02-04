@@ -3,14 +3,17 @@ package mes;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import mes.Database.DatabaseConnector;
 import mes.Database.OrderDatabase;
-
 
 public class CreateClientOrder extends javax.swing.JFrame {
 
@@ -20,6 +23,7 @@ public class CreateClientOrder extends javax.swing.JFrame {
         calculateTotalPrice();
         loadCategories();
     }
+
     DefaultTableModel model = new DefaultTableModel();
 
     private void calculateTotalPrice() {
@@ -30,7 +34,7 @@ public class CreateClientOrder extends javax.swing.JFrame {
         for (int i = 0; i < tblModel.getRowCount(); i++) {
             try {
                 String priceStr = tblModel.getValueAt(i, priceColumnIndex).toString();
-                double price = Double.parseDouble(priceStr.replace(",", ".")); // Eğer fiyat virgülle ayrılmışsa, noktaya dönüştürün
+                double price = Double.parseDouble(priceStr.replace(",", "."));
                 totalPrice += price;
             } catch (NumberFormatException ex) {
                 System.err.println("Hata: Satır " + (i + 1) + " için fiyat geçersiz: " + ex.getMessage());
@@ -108,6 +112,63 @@ public class CreateClientOrder extends javax.swing.JFrame {
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage());
             ex.printStackTrace();
+        }
+    }
+
+    private List<Map<String, Object>> getWarehousesForProduct(int productId, Connection conn) throws SQLException {
+        List<Map<String, Object>> warehouseList = new ArrayList<>();
+        String query = """
+        SELECT w.warehouse_id, w.warehouse_name, COALESCE(ws.quantity_in_stock, 0) AS quantity_in_stock
+        FROM warehouses w
+        LEFT JOIN warehouse_stock ws ON w.warehouse_id = ws.warehouse_id 
+        WHERE ws.product_id = ?
+        ORDER BY ws.quantity_in_stock DESC;
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> warehouseData = new HashMap<>();
+                warehouseData.put("warehouse_id", rs.getInt("warehouse_id"));
+                warehouseData.put("warehouse_name", rs.getString("warehouse_name"));
+                warehouseData.put("quantity_in_stock", rs.getInt("quantity_in_stock"));
+                warehouseList.add(warehouseData);
+            }
+        }
+        return warehouseList;
+    }
+
+    private boolean updateWarehouseStock(int warehouseId, int productId, int quantityChange, Connection conn) throws SQLException {
+        String query = "UPDATE warehouse_stock SET quantity_in_stock = quantity_in_stock + ? WHERE warehouse_id = ? AND product_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, quantityChange);
+            stmt.setInt(2, warehouseId);
+            stmt.setInt(3, productId);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    private boolean updateTotalProductStock(int productId, Connection conn) throws SQLException {
+        // Tüm warehouse'lardaki toplam stoğu hesapla
+        String sumStockQuery = "SELECT SUM(quantity_in_stock) AS product_stock FROM warehouse_stock WHERE product_id = ?";
+
+        int totalStock = 0;
+        try (PreparedStatement stmt = conn.prepareStatement(sumStockQuery)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                totalStock = rs.getInt("product_stock");
+            }
+        }
+
+        String updateProductQuery = "UPDATE products SET product_stock = ? WHERE product_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(updateProductQuery)) {
+            stmt.setInt(1, totalStock);
+            stmt.setInt(2, productId);
+            return stmt.executeUpdate() > 0;
         }
     }
 
@@ -261,18 +322,109 @@ public class CreateClientOrder extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void createOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createOrder_btnActionPerformed
-        // TODO add your handling code here:
-        ManagerMenu menuInstance = new ManagerMenu();  // Menu sınıfından yeni bir nesne oluşturuyoruz
-        String username = menuInstance.getUsername();
-        calculateTotalPrice();
-        double totalPrice = Double.parseDouble(oPCtotalPrice.getText());
+        {
+            calculateTotalPrice();
+            double totalPrice;
 
+            try {
+                totalPrice = Double.parseDouble(oPCtotalPrice.getText());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Toplam fiyat geçersiz!", "Hata", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
+            String username = ManagerMenu.getUsername();
+            if (username == null || username.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Kullanıcı adı bulunamadı! Lütfen tekrar giriş yapın.", "Hata", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
+            String companyName = (String) companyName_combox.getSelectedItem();
+            if (companyName == null || companyName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Lütfen bir şirket seçin!", "Hata", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String insertOrderSQL = "INSERT INTO orders (order_date, order_price, order_status, username, company_name) VALUES (?, ?, ?, ?, ?)";
+
+            try (Connection conn = DatabaseConnector.getConnection()) {
+                conn.setAutoCommit(false);
+
+                try (PreparedStatement pstmt = conn.prepareStatement(insertOrderSQL, Statement.RETURN_GENERATED_KEYS)) {
+                    pstmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
+                    pstmt.setDouble(2, totalPrice);
+                    pstmt.setString(3, "Pending");
+                    pstmt.setString(4, username);
+                    pstmt.setString(5, companyName);
+
+                    int rowsInserted = pstmt.executeUpdate();
+                    if (rowsInserted == 0) {
+                        throw new SQLException("Sipariş eklenemedi!");
+                    }
+
+                    ResultSet generatedKeys = pstmt.getGeneratedKeys();
+                    int orderId;
+                    if (generatedKeys.next()) {
+                        orderId = generatedKeys.getInt(1);
+                    } else {
+                        throw new SQLException("Sipariş ID alınamadı!");
+                    }
+
+                    String getCartItemsSQL = "SELECT product_id, quantity FROM basket";
+                    try (PreparedStatement cartStmt = conn.prepareStatement(getCartItemsSQL); ResultSet cartItems = cartStmt.executeQuery()) {
+
+                        while (cartItems.next()) {
+                            int productId = cartItems.getInt("product_id");
+                            int quantityNeeded = cartItems.getInt("quantity");
+
+                            List<Map<String, Object>> warehouses = getWarehousesForProduct(productId, conn);
+
+                            for (Map<String, Object> warehouse : warehouses) {
+                                if (quantityNeeded <= 0) {
+                                    break;
+                                }
+
+                                int warehouseId = (int) warehouse.get("warehouse_id");
+                                int availableStock = (int) warehouse.get("quantity_in_stock");
+
+                                if (availableStock > 0) {
+                                    int quantityToDeduct = Math.min(availableStock, quantityNeeded);
+                                    quantityNeeded -= quantityToDeduct;
+
+                                    updateWarehouseStock(warehouseId, productId, -quantityToDeduct, conn);
+                                }
+                            }
+
+                            if (quantityNeeded > 0) {
+                                throw new SQLException("Yeterli stok yok! Ürün ID: " + productId);
+                            }
+
+                            updateTotalProductStock(productId, conn);
+                        }
+                    }
+
+                    try (PreparedStatement clearStmt = conn.prepareStatement("DELETE FROM basket")) {
+                        clearStmt.executeUpdate();
+                    }
+
+                    conn.commit();
+                    JOptionPane.showMessageDialog(this, "Sipariş başarıyla oluşturuldu ve stok güncellendi!", "Başarılı", JOptionPane.INFORMATION_MESSAGE);
+                } catch (SQLException e) {
+                    conn.rollback();
+                    throw e;
+                } finally {
+                    conn.setAutoCommit(true);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Veritabanı hatası: " + e.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
+            }
+
+        }
     }//GEN-LAST:event_createOrder_btnActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-         String newComapany = JOptionPane.showInputDialog(this, "Yeni Company Girin:", "Yeni Company Girin", JOptionPane.PLAIN_MESSAGE);
+        String newComapany = JOptionPane.showInputDialog(this, "Yeni Company Girin:", "Yeni Company Girin", JOptionPane.PLAIN_MESSAGE);
 
         if (newComapany != null && !newComapany.trim().isEmpty()) {
             try {

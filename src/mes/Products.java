@@ -14,7 +14,6 @@ import mes.Database.DatabaseConnector;
 import mes.Database.ProductDatabase;
 import mes.model.Product;
 
-
 public class Products extends javax.swing.JFrame {
 
     public Products() {
@@ -152,7 +151,7 @@ public class Products extends javax.swing.JFrame {
                     DefaultTableModel model = (DefaultTableModel) products_tbl.getModel();
                     model.removeRow(selectedRow);
                 } else {
-                JOptionPane.showMessageDialog(null, "Ürün üretimde olduğu için silinemez!", "Uyarı", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Ürün üretimde olduğu için silinemez!", "Uyarı", JOptionPane.WARNING_MESSAGE);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -497,18 +496,18 @@ public class Products extends javax.swing.JFrame {
 
     private void transfer_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transfer_btnActionPerformed
         // TODO add your handling code here:
-         int selectedRow = products_tbl.getSelectedRow();
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin!");
-        return;
-    }
+        int selectedRow = products_tbl.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin!");
+            return;
+        }
 
-    int productId = (int) products_tbl.getValueAt(selectedRow, 0);
-    String productName = (String) products_tbl.getValueAt(selectedRow, 1);
+        int productId = (int) products_tbl.getValueAt(selectedRow, 0);
+        String productName = (String) products_tbl.getValueAt(selectedRow, 1);
 
-    Transfer transferForm = new Transfer(productId, productName);
-    transferForm.setVisible(true);
-        
+        Transfer transferForm = new Transfer(productId, productName);
+        transferForm.setVisible(true);
+
     }//GEN-LAST:event_transfer_btnActionPerformed
 
     private void products_tblMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_products_tblMouseClicked
@@ -517,20 +516,19 @@ public class Products extends javax.swing.JFrame {
 
     private void createOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createOrder_btnActionPerformed
         // TODO add your handling code here:
-         int selectedRow = products_tbl.getSelectedRow();
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin!");
-        return;
-    }
+        int selectedRow = products_tbl.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin!");
+            return;
+        }
 
-    int productId = (int) products_tbl.getValueAt(selectedRow, 0);
-    String productName = (String) products_tbl.getValueAt(selectedRow, 1);
+        int productId = (int) products_tbl.getValueAt(selectedRow, 0);
+        String productName = (String) products_tbl.getValueAt(selectedRow, 1);
 
-    AddBasket addBasket = new AddBasket(productId, productName);
-    addBasket.setVisible(true);
-        
+        AddBasket addBasket = new AddBasket(productId, productName);
+        addBasket.setVisible(true);
+
     }//GEN-LAST:event_createOrder_btnActionPerformed
-    
 
     void loadTable() {
         try {

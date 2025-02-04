@@ -1,4 +1,3 @@
-
 package mes;
 
 import java.util.List;
@@ -14,15 +13,14 @@ import mes.Database.ProductDatabase;
 import mes.Database.WarehouseDatabase;
 import mes.Database.WarehouseStockDatabase;
 
-
 public class AddBasket extends javax.swing.JFrame {
-        private int selectedProductId;
+
+    private int selectedProductId;
     private String selectedProductName;
 
-    
     public AddBasket() {
     }
-    
+
     public AddBasket(int productId, String productName) {
         this.selectedProductId = productId;
         this.selectedProductName = productName;
@@ -145,85 +143,83 @@ public class AddBasket extends javax.swing.JFrame {
 
     private void addBasket_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBasket_btnActionPerformed
         // TODO add your handling code here:
-         int selectedRow = warehouseStocks_tbl.getSelectedRow();
+        int selectedRow = warehouseStocks_tbl.getSelectedRow();
 
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Lütfen bir depo seçin!");
-        return;
-    }
-
-    String selectedWarehouse = (String) warehouseStocks_tbl.getValueAt(selectedRow, 0);
-    int warehouseId = new WarehouseDatabase().getWarehouseIdByName(selectedWarehouse);
-
-    int availableStock = (int) warehouseStocks_tbl.getValueAt(selectedRow, 1);
-    int quantity;
-
-    try {
-        quantity = Integer.parseInt(quantity_txt.getText().trim());
-
-        if (quantity <= 0) {
-            JOptionPane.showMessageDialog(this, "Miktar pozitif bir sayı olmalıdır.");
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen bir depo seçin!");
             return;
         }
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Lütfen geçerli bir miktar girin.");
-        return;
-    }
 
-    if (quantity > availableStock) {
-        JOptionPane.showMessageDialog(this, "Yetersiz stok! Sepete eklenemez.");
-        return;
-    }
+        String selectedWarehouse = (String) warehouseStocks_tbl.getValueAt(selectedRow, 0);
+        int warehouseId = new WarehouseDatabase().getWarehouseIdByName(selectedWarehouse);
 
-    double orderPrice = new ProductDatabase().getProductPriceById(selectedProductId);
-    
-    boolean success = addToBasket(selectedProductId, warehouseId, quantity, orderPrice);
+        int availableStock = (int) warehouseStocks_tbl.getValueAt(selectedRow, 1);
+        int quantity;
 
-    if (success) {
-        JOptionPane.showMessageDialog(this, "Ürün sepete başarıyla eklendi!");
-    } else {
-        JOptionPane.showMessageDialog(this, "Ürün sepete eklenemedi.");
-    }
+        try {
+            quantity = Integer.parseInt(quantity_txt.getText().trim());
+
+            if (quantity <= 0) {
+                JOptionPane.showMessageDialog(this, "Miktar pozitif bir sayı olmalıdır.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Lütfen geçerli bir miktar girin.");
+            return;
+        }
+
+        double orderPrice = new ProductDatabase().getProductPriceById(selectedProductId);
+
+        boolean success = addToBasket(selectedProductId, warehouseId, quantity, orderPrice, availableStock);
+
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Ürün sepete başarıyla eklendi!");
+        } else {
+            JOptionPane.showMessageDialog(this, "Ürün sepete eklenemedi.");
+        }
 
     }//GEN-LAST:event_addBasket_btnActionPerformed
-public boolean addToBasket(int productId, int warehouseId, int quantity, double orderPrice) {
-    String selectQuery = "SELECT quantity FROM basket WHERE product_id = ? AND warehouse_id = ?";
-    String updateQuery = "UPDATE basket SET quantity = quantity + ? WHERE product_id = ? AND warehouse_id = ?";
-    String insertQuery = "INSERT INTO basket (product_id, warehouse_id, quantity, order_price) VALUES (?, ?, ?, ?)";
+    public boolean addToBasket(int productId, int warehouseId, int quantity, double orderPrice, int availableStock) {
+        String selectQuery = "SELECT quantity FROM basket WHERE product_id = ? AND warehouse_id = ?";
+        String updateQuery = "UPDATE basket SET quantity = quantity + ? WHERE product_id = ? AND warehouse_id = ?";
+        String insertQuery = "INSERT INTO basket (product_id, warehouse_id, quantity, order_price) VALUES (?, ?, ?, ?)";
 
-    try (Connection conn = DatabaseConnector.getConnection();
-         PreparedStatement selectStmt = conn.prepareStatement(selectQuery);
-         PreparedStatement updateStmt = conn.prepareStatement(updateQuery);
-         PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement selectStmt = conn.prepareStatement(selectQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
 
-        // Sepette bu ürün var mı kontrol et
-        selectStmt.setInt(1, productId);
-        selectStmt.setInt(2, warehouseId);
-        ResultSet rs = selectStmt.executeQuery();
+            // Sepette bu ürün var mı kontrol et
+            selectStmt.setInt(1, productId);
+            selectStmt.setInt(2, warehouseId);
+            ResultSet rs = selectStmt.executeQuery();
 
-        if (rs.next()) {
-            // Eğer ürün varsa, quantity artır
-            updateStmt.setInt(1, quantity);
-            updateStmt.setInt(2, productId);
-            updateStmt.setInt(3, warehouseId);
-            return updateStmt.executeUpdate() > 0;
-        } else {
-            // Ürün yoksa, yeni kayıt ekle
-            insertStmt.setInt(1, productId);
-            insertStmt.setInt(2, warehouseId);
-            insertStmt.setInt(3, quantity);
-            insertStmt.setDouble(4, orderPrice);
-            return insertStmt.executeUpdate() > 0;
+            int existingQuantity = 0;
+            if (rs.next()) {
+                existingQuantity = rs.getInt("quantity");
+            }
+
+            if (existingQuantity + quantity > availableStock) {
+                JOptionPane.showMessageDialog(null, "Depodaki mevcut stok aşılamaz! Maksimum eklenebilir miktar: " + (availableStock - existingQuantity));
+                return false;
+            }
+
+            if (existingQuantity > 0) {
+                updateStmt.setInt(1, quantity);
+                updateStmt.setInt(2, productId);
+                updateStmt.setInt(3, warehouseId);
+                return updateStmt.executeUpdate() > 0;
+            } else {
+                insertStmt.setInt(1, productId);
+                insertStmt.setInt(2, warehouseId);
+                insertStmt.setInt(3, quantity);
+                insertStmt.setDouble(4, orderPrice);
+                return insertStmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return false;
     }
-}    /**
-     * @param args the command line arguments
-     */
+
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -246,7 +242,6 @@ public boolean addToBasket(int productId, int warehouseId, int quantity, double 
         }
         //</editor-fold>
 
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new AddBasket().setVisible(true);

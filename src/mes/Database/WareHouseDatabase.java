@@ -13,23 +13,6 @@ public class WarehouseDatabase {
     WareHouse warehouses = null;
 
 
-    public int getTotalStockForProduct(int productId) {
-        String query = "SELECT SUM(quantity_in_stock) AS total_stock FROM warehouse_stock WHERE product_id = ?";
-
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setInt(1, productId);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("total_stock");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return 0;
-    }
 //    public boolean updateProductTotalStock(int productId) {
 //    String query = "SELECT SUM(quantity_in_stock) AS total_stock FROM warehouse_stock WHERE product_id = ?";
 //    String updateQuery = "UPDATE products SET product_stock = ? WHERE product_id = ?";
@@ -56,33 +39,6 @@ public class WarehouseDatabase {
 //    return false;
 //}
 
-    public boolean updateOrInsertWarehouseStock(int warehouseId, int productId, int quantity) {
-        String checkQuery = "SELECT quantity_in_stock FROM warehouse_stock WHERE warehouse_id = ? AND product_id = ?";
-        String updateQuery = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE product_id = ?";
-        String insertQuery = "INSERT INTO warehouse_stock (warehouse_id, product_id, quantity_in_stock) VALUES (?, ?, ?)";
-
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
-
-            checkStmt.setInt(1, warehouseId);
-            checkStmt.setInt(2, productId);
-            ResultSet rs = checkStmt.executeQuery();
-
-            if (rs.next()) {
-                updateStmt.setInt(1, quantity);
-                updateStmt.setInt(2, warehouseId);
-                updateStmt.setInt(3, productId);
-                return updateStmt.executeUpdate() > 0;
-            } else {
-                insertStmt.setInt(1, warehouseId);
-                insertStmt.setInt(2, productId);
-                insertStmt.setInt(3, quantity);
-                return insertStmt.executeUpdate() > 0;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 //
 //    public boolean updateStockQuantity(int warehouseId, int productId, int newQuantity) {
 //        String query = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE warehouse_id = ? AND product_id = ?";
@@ -114,22 +70,6 @@ public class WarehouseDatabase {
 //        }
 //        return 0;
 //    }
-        public boolean updateProductStock(int productId, int newStock) {
-        String updateQuery = "UPDATE Products SET product_stock = ? WHERE product_id = ? ";
-        
-
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
-            stmt.setInt(1, newStock);
-            stmt.setInt(2, productId);
-
-            int rowsUpdated = stmt.executeUpdate();
-
-            return rowsUpdated > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 //
 //
 //    public boolean processTransfer(int productId, int fromWarehouseId, int toWarehouseId, int transferQuantity) {
@@ -179,6 +119,68 @@ public class WarehouseDatabase {
 //            return false;
 //        }
 //    }
+        public int getTotalStockForProduct(int productId) {
+        String query = "SELECT SUM(quantity_in_stock) AS total_stock FROM warehouse_stock WHERE product_id = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("total_stock");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+        public boolean updateOrInsertWarehouseStock(int warehouseId, int productId, int quantity) {
+        String checkQuery = "SELECT quantity_in_stock FROM warehouse_stock WHERE warehouse_id = ? AND product_id = ?";
+        String updateQuery = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE product_id = ?";
+        String insertQuery = "INSERT INTO warehouse_stock (warehouse_id, product_id, quantity_in_stock) VALUES (?, ?, ?)";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
+
+            checkStmt.setInt(1, warehouseId);
+            checkStmt.setInt(2, productId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next()) {
+                updateStmt.setInt(1, quantity);
+                updateStmt.setInt(2, warehouseId);
+                updateStmt.setInt(3, productId);
+                return updateStmt.executeUpdate() > 0;
+            } else {
+                insertStmt.setInt(1, warehouseId);
+                insertStmt.setInt(2, productId);
+                insertStmt.setInt(3, quantity);
+                return insertStmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+        public boolean updateProductStock(int productId, int newStock) {
+        String updateQuery = "UPDATE Products SET product_stock = ? WHERE product_id = ? ";
+        
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
+            stmt.setInt(1, newStock);
+            stmt.setInt(2, productId);
+
+            int rowsUpdated = stmt.executeUpdate();
+
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     public String getWarehouseNameById(int warehouseId) {
         String warehouseName = null;

@@ -41,8 +41,8 @@ public class RawMaterialDatabase {
         return rawMaterials;
     }
 
-    public boolean addRawProduct(String rawProductName, String rawProductColor, int rawProductStock,
-            double productPrice) {
+    public boolean addRawProduct(String rawProductName, String rawProductColor,
+            double productPrice,int supplierId) {
         Connection conn = null;
         PreparedStatement pstmt = null;
 
@@ -56,12 +56,13 @@ public class RawMaterialDatabase {
 //                JOptionPane.showMessageDialog(null, "Yetersiz ham madde stoğu!");
 //                return false;
 //            }
-            String sql = "INSERT INTO raw_material (rawproduct_name, rawproduct_color, rawproduct_stock, rawproduct_price )VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO raw_material (rawproduct_name, rawproduct_color, rawproduct_stock, rawproduct_price, supplier_id )VALUES (?, ?, ?, ?,?)";
             pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, rawProductName);
             pstmt.setString(2, rawProductColor);
-            pstmt.setInt(3, rawProductStock);
+            pstmt.setInt(3, 0);
             pstmt.setDouble(4, productPrice);
+            pstmt.setInt(5, supplierId);
 
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
