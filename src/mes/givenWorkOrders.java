@@ -102,7 +102,7 @@ public class givenWorkOrders extends javax.swing.JFrame {
             int total = warehouseDatabase.getTotalStockForProduct(productId);
             boolean success2 = warehouseDatabase.updateProductStock(productId, total);
 
-            if (success || success2) {
+            if (success) {
                 if ("In Production".equals(status)) {
                     updateTable();
                     JOptionPane.showMessageDialog(this, "Production status updated to 'In Production'.");

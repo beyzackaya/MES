@@ -16,50 +16,104 @@ import mes.Database.DatabaseConnector;
 
 
 public class WarehouseEmployeeMenu extends javax.swing.JFrame {
-
     private int employeeId;
+    private int warehouseId;
+
     public WarehouseEmployeeMenu(int employeeId) {
         this.employeeId = employeeId;
+        this.warehouseId = getWarehouseIdByEmployee(employeeId); // Çalışanın deposunu al
         initComponents();
     }
+    
     private WarehouseEmployeeMenu() {
         initComponents();
+    }
+
+    private int getWarehouseIdByEmployee(int employeeId) {
+        int warehouseId = -1; // Varsayılan olarak -1 (atanmamış)
+        try {
+            Connection conn = DatabaseConnector.getConnection();
+            String sql = "SELECT warehouse_id FROM users WHERE user_id = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, employeeId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                warehouseId = rs.getInt("warehouse_id");
+            }
+
+            rs.close();
+            pstmt.close();
+            conn.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return warehouseId;
+
+    
     }
    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        transferTable = new javax.swing.JTable();
+        üretimdenGelenÜrünler_btn = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        transferTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-            },
-            new String[]{"ID", "Ürün Adı", "Miktar", "Tarih", "Gönderici Depo", "Alıcı Depo", "Durum"}
-        ));
-        jScrollPane1.setViewportView(transferTable);
+        üretimdenGelenÜrünler_btn.setText("Üretimden gelen ürünler");
+        üretimdenGelenÜrünler_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                üretimdenGelenÜrünler_btnActionPerformed(evt);
+            }
+        });
+
+        jButton1.setText("Customer Orders");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(69, 69, 69)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(260, Short.MAX_VALUE))
+                .addGap(150, 150, 150)
+                .addComponent(üretimdenGelenÜrünler_btn)
+                .addGap(171, 171, 171)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(114, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(62, 62, 62)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(74, Short.MAX_VALUE))
+                .addGap(168, 168, 168)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(üretimdenGelenÜrünler_btn)
+                    .addComponent(jButton1))
+                .addContainerGap(347, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void üretimdenGelenÜrünler_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_üretimdenGelenÜrünler_btnActionPerformed
+        // TODO add your handling code here:
+         if (warehouseId == -1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Depo bilgisi bulunamadı!");
+        return;
+    }
+    
+    // Sadece kendi deposuna ait üretim siparişlerini göstermek için warehouseId gönder
+    new ProductsFromProduction(warehouseId).setVisible(true);
+
+    }//GEN-LAST:event_üretimdenGelenÜrünler_btnActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     public static void main(String args[]) {
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -92,7 +146,7 @@ public class WarehouseEmployeeMenu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable transferTable;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton üretimdenGelenÜrünler_btn;
     // End of variables declaration//GEN-END:variables
 }

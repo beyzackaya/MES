@@ -114,55 +114,55 @@ public class LogIn extends javax.swing.JFrame {
     }//GEN-LAST:event_usernametxtActionPerformed
 
     private void LoginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginButtonActionPerformed
-        String username = usernametxt.getText();
-        String password = new String(user_passwordtxt.getPassword());
+         String username = usernametxt.getText();
+    String password = new String(user_passwordtxt.getPassword());
 
-        try {
-            try (Connection conn = DatabaseConnector.getConnection()) {
-                String sql = "SELECT user_id, role_id FROM users WHERE username = ? AND password = ?";
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, username);
-                pstmt.setString(2, password);
-                ResultSet rs = pstmt.executeQuery();
+    try {
+        try (Connection conn = DatabaseConnector.getConnection()) {
+            String sql = "SELECT user_id, role_id, warehouse_id FROM users WHERE username = ? AND password = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            ResultSet rs = pstmt.executeQuery();
 
-                if (rs.next()) {
-                    int roleId = rs.getInt("role_id");
-                    int employeeId = rs.getInt("user_id");
+            if (rs.next()) {
+                int roleId = rs.getInt("role_id");
+                int employeeId = rs.getInt("user_id");
+                int warehouseId = rs.getInt("warehouse_id"); 
 
-                    switch (roleId) {
-                        case 1 -> {
-                            JOptionPane.showMessageDialog(this, "Login successful!");
-                            dispose();
-                            new ManagerMenu(username).setVisible(true);
-                        }
-
-                        case 2 -> {
-                            JOptionPane.showMessageDialog(this, "Login successful!");
-                            dispose();
-                            new WarehouseEmployeeMenu(employeeId).setVisible(true);  // Depo çalışanı menüsü
-                        }
-                        case 3 -> {
-                            JOptionPane.showMessageDialog(this, "Login successful!");
-                            dispose();
-                            new FactoryEmployeeMenu(username).setVisible(true);
-                        }
-                        default -> {
-                            JOptionPane.showMessageDialog(this, "Login failed! Unauthorized role.");
-                            dispose();
-                        }
+                switch (roleId) {
+                    case 1 -> {
+                        JOptionPane.showMessageDialog(this, "Login successful!");
+                        dispose();
+                        new ManagerMenu(username).setVisible(true);
                     }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Login failed! Invalid username or password.");
-                    dispose();
-                }
 
-                rs.close();
-                pstmt.close();
+                    case 2 -> {
+                        java.awt.EventQueue.invokeLater(() -> {
+                        new WarehouseEmployeeMenu(employeeId).setVisible(true);
+    }); }
+                    case 3 -> {
+                        JOptionPane.showMessageDialog(this, "Login successful!");
+                        dispose();
+                        new FactoryEmployeeMenu(username).setVisible(true);
+                    }
+                    default -> {
+                        JOptionPane.showMessageDialog(this, "Login failed! Unauthorized role.");
+                        dispose();
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Login failed! Invalid username or password.");
+                dispose();
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage());
-            ex.printStackTrace();
+
+            rs.close();
+            pstmt.close();
         }
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage());
+        ex.printStackTrace();
+    }
     }//GEN-LAST:event_LoginButtonActionPerformed
 
     public static void main(String args[]) {

@@ -20,17 +20,8 @@ public class pastWorkOrders extends javax.swing.JFrame {
     public pastWorkOrders() {
         initComponents();
         loadTable();
-        loadCategories();
+        loadProductions();
     }
-
-  
-    ProductionDatabase productionDatabase = new ProductionDatabase();
-
-
-    
-        
-
-    
 
     private void filter() {
         String status = status_combox.getSelectedItem() != null ? status_combox.getSelectedItem().toString().trim() : "";
@@ -79,7 +70,7 @@ public class pastWorkOrders extends javax.swing.JFrame {
         }
     }
 
-    private void loadCategories() {
+    private void loadProductions() {
         try {
             Connection conn = DatabaseConnector.getConnection();
             String sql = "SHOW COLUMNS FROM production LIKE 'status';";
@@ -194,28 +185,27 @@ public class pastWorkOrders extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(status_combox, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(57, 57, 57)
+                .addComponent(cancelled_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(404, 404, 404))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(36, 36, 36)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(56, 56, 56)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(status_combox, 0, 95, Short.MAX_VALUE)
-                    .addComponent(cancelled_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(48, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1021, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(41, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 396, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(116, 116, 116)
-                        .addComponent(status_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(31, 31, 31)
-                        .addComponent(cancelled_btn)))
-                .addContainerGap(41, Short.MAX_VALUE))
+                .addGap(24, 24, 24)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 537, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cancelled_btn)
+                    .addComponent(status_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(92, 92, 92))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -239,57 +229,55 @@ public class pastWorkOrders extends javax.swing.JFrame {
 
     private void cancelled_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelled_btnActionPerformed
         // TODO add your handling code here:
-        
+
         int selectedRow = workOrder_tbl.getSelectedRow();
-    
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Lütfen iptal etmek için bir sipariş seçin.");
-        return;
-    }
 
-    int productionId = (int) workOrder_tbl.getValueAt(selectedRow, 0); // Production ID'yi al
-
-    try {
-        Connection conn = DatabaseConnector.getConnection();
-
-        // Siparişin mevcut durumunu al
-        String checkStatusQuery = "SELECT status FROM production WHERE production_id = ?";
-        PreparedStatement checkStmt = conn.prepareStatement(checkStatusQuery);
-        checkStmt.setInt(1, productionId);
-        ResultSet rs = checkStmt.executeQuery();
-
-        if (rs.next()) {
-            String currentStatus = rs.getString("status");
-
-            if ("Completed".equalsIgnoreCase(currentStatus)) {
-                JOptionPane.showMessageDialog(this, "Geçmiş sipariş iptal edilemez. (Durum: Completed)");
-                return;
-            }
-
-            // Eğer durum "Completed" değilse "Cancelled" olarak güncelle
-            String updateQuery = "UPDATE production SET status = 'Cancelled' WHERE production_id = ?";
-            PreparedStatement updateStmt = conn.prepareStatement(updateQuery);
-            updateStmt.setInt(1, productionId);
-            int updatedRows = updateStmt.executeUpdate();
-
-            if (updatedRows > 0) {
-                JOptionPane.showMessageDialog(this, "Sipariş başarıyla iptal edildi!");
-                loadTable(); // Tabloyu güncelle
-            } else {
-                JOptionPane.showMessageDialog(this, "Sipariş iptal edilirken hata oluştu.");
-            }
-
-            updateStmt.close();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen iptal etmek için bir sipariş seçin.");
+            return;
         }
 
-        rs.close();
-        checkStmt.close();
-        conn.close();
+        int productionId = (int) workOrder_tbl.getValueAt(selectedRow, 0); 
 
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Veritabanı hatası: " + ex.getMessage());
-    }
+        try {
+            Connection conn = DatabaseConnector.getConnection();
+
+            String checkStatusQuery = "SELECT status FROM production WHERE production_id = ?";
+            PreparedStatement checkStmt = conn.prepareStatement(checkStatusQuery);
+            checkStmt.setInt(1, productionId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next()) {
+                String currentStatus = rs.getString("status");
+
+                if ("Completed".equalsIgnoreCase(currentStatus)) {
+                    JOptionPane.showMessageDialog(this, "Geçmiş sipariş iptal edilemez.");
+                    return;
+                }
+
+                String updateQuery = "UPDATE production SET status = 'Cancelled' WHERE production_id = ?";
+                PreparedStatement updateStmt = conn.prepareStatement(updateQuery);
+                updateStmt.setInt(1, productionId);
+                int updatedRows = updateStmt.executeUpdate();
+
+                if (updatedRows > 0) {
+                    JOptionPane.showMessageDialog(this, "Sipariş başarıyla iptal edildi!");
+                    loadTable(); 
+                } else {
+                    JOptionPane.showMessageDialog(this, "Sipariş iptal edilirken hata oluştu.");
+                }
+
+                updateStmt.close();
+            }
+
+            rs.close();
+            checkStmt.close();
+            conn.close();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Veritabanı hatası: " + ex.getMessage());
+        }
 
     }//GEN-LAST:event_cancelled_btnActionPerformed
 
