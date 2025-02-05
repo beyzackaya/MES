@@ -54,36 +54,18 @@ public class ProductionDatabase {
         }
     }
 
-    public static List<Production> getProductionsByStatus(String status) {
-        List<Production> productions = new ArrayList<>();
-        try {
-            Connection conn = DatabaseConnector.getConnection();
-
-            String sql = "SELECT * FROM production WHERE status = ?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+    public static boolean updateProductionStatus3(int productionId, String status) {
+        String query = "UPDATE production SET status = ? WHERE production_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, status);
-            ResultSet rs = pstmt.executeQuery();
 
-            while (rs.next()) {
-                Production production = new Production();
-                production.setProductionId(rs.getInt("production_id"));
-                production.setProductId(rs.getInt("product_id"));
-                production.setQuantityProduced(rs.getInt("quantity_produced"));
-                production.setWarehouseId(rs.getInt("warehouse_id"));
-                production.setRawproductId(rs.getInt("rawproduct_id"));
-                production.setStartDate(rs.getDate("start_date"));
-                production.setEndDate(rs.getDate("end_date"));
-                production.setStatus(rs.getString("status"));
-                productions.add(production);
-            }
-
-            rs.close();
-            pstmt.close();
-            conn.close();
+            pstmt.setInt(3, productionId);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException ex) {
             ex.printStackTrace();
+            return false;
         }
-        return productions;
     }
 
     public static boolean updateProductionStatus(int productionId, String status) {
@@ -136,7 +118,6 @@ public class ProductionDatabase {
             return false;
         }
     }
-    
 
     public Optional<Integer> getWarehouseIdByName(String warehouseName) throws SQLException {
         String query = "SELECT warehouse_id FROM warehouses WHERE warehouse_name = ?";
@@ -148,6 +129,50 @@ public class ProductionDatabase {
             }
         }
         return Optional.empty();
+    }
+
+    public Optional<Integer> getusernameIdByName(String username) throws SQLException {
+        String query = "SELECT user_id FROM users WHERE username = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(rs.getInt("user_id"));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static List<Production> getProductionsByStatus(String status) {
+        List<Production> productions = new ArrayList<>();
+        try {
+            Connection conn = DatabaseConnector.getConnection();
+
+            String sql = "SELECT * FROM production WHERE status = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, status);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Production production = new Production();
+                production.setProductionId(rs.getInt("production_id"));
+                production.setProductId(rs.getInt("product_id"));
+                production.setQuantityProduced(rs.getInt("quantity_produced"));
+                production.setWarehouseId(rs.getInt("warehouse_id"));
+                production.setRawproductId(rs.getInt("rawproduct_id"));
+                production.setStartDate(rs.getDate("start_date"));
+                production.setEndDate(rs.getDate("end_date"));
+                production.setStatus(rs.getString("status"));
+                productions.add(production);
+            }
+
+            rs.close();
+            pstmt.close();
+            conn.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return productions;
     }
 
     public Optional<Integer> getRawProductIdByProductId(int productId) throws SQLException {
@@ -162,9 +187,9 @@ public class ProductionDatabase {
         return Optional.empty();
     }
 
-    public boolean createWorkOrder(int productId, int warehouseId, Integer rawProductId, int productionQuantity) throws SQLException {
-        String query = "INSERT INTO production (product_id, quantity_produced, warehouse_id, rawproduct_id, production_date, status) "
-                + "VALUES (?, ?, ?, ?, NOW(), 'Pending')";
+    public boolean createWorkOrder(int productId, int warehouseId, Integer rawProductId, int productionQuantity, String username) throws SQLException {
+        String query = "INSERT INTO production (product_id, quantity_produced, warehouse_id, rawproduct_id,username, production_date, status) "
+                + "VALUES (?, ?, ?, ?,?, NOW(), 'Pending')";
         try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, productId);
             stmt.setInt(2, productionQuantity);
@@ -174,6 +199,7 @@ public class ProductionDatabase {
             } else {
                 stmt.setNull(4, java.sql.Types.INTEGER);
             }
+            stmt.setString(5, username);
             return stmt.executeUpdate() > 0;
         }
     }
@@ -198,6 +224,7 @@ public class ProductionDatabase {
                 production.setProductionDate(rs.getDate("production_date"));
                 production.setStatus(rs.getString("status"));
                 production.setWarehouseId(rs.getInt("warehouse_id"));
+                production.setUsername(rs.getString("username"));
                 productions.add(production);
             }
 
@@ -208,6 +235,91 @@ public class ProductionDatabase {
             ex.printStackTrace();
         }
         return productions;
+    }
+
+    public int getRequiredRawMaterialQuantity(int productId) {
+        String query = "SELECT quantity_required FROM product_raw_material WHERE product_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("quantity_required");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int getProductIdByProductionId(int productionId) {
+        String query = "SELECT product_id FROM production WHERE production_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productionId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("product_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public int getRawMaterialIdByProductId(int productId) {
+        String query = "SELECT rawproduct_id FROM product_raw_material WHERE product_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("rawproduct_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public int getRawMaterialStock(int rawMaterialId) {
+        String query = "SELECT rawproduct_stock FROM raw_material WHERE rawproduct_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, rawMaterialId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("rawproduct_stock");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int getProductionQuantityById(int productionId) {
+        String query = "SELECT quantity_produced FROM production WHERE production_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productionId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("quantity_produced");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public String getRawProductIdByName(int rawProductId) {
+        String rawProductID = null;
+        String query = "SELECT rawproduct_id FROM raw_material WHERE rawproduct_name = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, rawProductId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                rawProductID = rs.getString("rawproduct_id");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return rawProductID;
     }
 
 }

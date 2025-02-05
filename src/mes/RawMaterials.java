@@ -137,25 +137,38 @@ public class RawMaterials extends javax.swing.JFrame {
         }
     }
 
-    private boolean createSupplierOrder(int supplierId, int rawProductId, int orderQuantity) {
-        String query = """
-        INSERT INTO supplier_orders (supplier_id, rawproduct_id, order_quantity, order_date, order_status)
-        VALUES (?, ?, ?, CURDATE(), 'Pending')
+
+private boolean createSupplierOrder(int supplierId, int rawProductId, int orderQuantity) {
+    String priceQuery = "SELECT rawproduct_price FROM raw_material WHERE rawproduct_id = ?";
+    String insertQuery = """
+        INSERT INTO supplier_orders (supplier_id, rawproduct_id, order_quantity, supplier_order_cost, order_date, order_status)
+        VALUES (?, ?, ?, ?, CURDATE(), 'Pending')
     """;
 
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+    try (Connection conn = DatabaseConnector.getConnection();
+         PreparedStatement priceStmt = conn.prepareStatement(priceQuery);
+         PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
 
-            stmt.setInt(1, supplierId);
-            stmt.setInt(2, rawProductId);
-            stmt.setInt(3, orderQuantity);
+        priceStmt.setInt(1, rawProductId);
+        ResultSet rs = priceStmt.executeQuery();
 
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+        if (rs.next()) {
+            double price = rs.getDouble("rawproduct_price");
+            double totalCost = price * orderQuantity;
+
+            insertStmt.setInt(1, supplierId);
+            insertStmt.setInt(2, rawProductId);
+            insertStmt.setInt(3, orderQuantity);
+            insertStmt.setDouble(4, totalCost);
+
+            return insertStmt.executeUpdate() > 0;
         }
+        return false; 
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
     }
-
+}
     private int getSupplierIdForRawMaterial(int rawProductId) {
         String query = "SELECT supplier_id FROM raw_material WHERE rawproduct_id = ?";
 

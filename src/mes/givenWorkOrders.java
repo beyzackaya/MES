@@ -26,6 +26,8 @@ public class givenWorkOrders extends javax.swing.JFrame {
         updateTable();
 
     }
+    ProductionDatabase productionDatabase= new ProductionDatabase();
+
 
     private void updateTable() {
         loadProductionTable(inProces_tbl, "In Production");
@@ -34,75 +36,6 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
     }
 
-    private int getProductIdByProductionId(int productionId) {
-        String query = "SELECT product_id FROM production WHERE production_id = ?";
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, productionId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("product_id");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    private int getProductionQuantityById(int productionId) {
-        String query = "SELECT quantity_produced FROM production WHERE production_id = ?";
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, productionId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("quantity_produced");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    private int getRawMaterialIdByProductId(int productId) {
-        String query = "SELECT rawproduct_id FROM product_raw_material WHERE product_id = ?";
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, productId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("rawproduct_id");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    private int getRequiredRawMaterialQuantity(int productId) {
-        String query = "SELECT quantity_required FROM product_raw_material WHERE product_id = ?";
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, productId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("quantity_required");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    private int getRawMaterialStock(int rawMaterialId) {
-        String query = "SELECT rawproduct_stock FROM raw_material WHERE rawproduct_id = ?";
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, rawMaterialId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("rawproduct_stock");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
 
     private void reduceRawMaterialStock(int rawMaterialId, int quantityToReduce) {
         String query = "UPDATE raw_material SET rawproduct_stock = rawproduct_stock - ? WHERE rawproduct_id = ?";
@@ -115,35 +48,20 @@ public class givenWorkOrders extends javax.swing.JFrame {
         }
     }
 
-    public String getRawProductIdByName(int rawProductId) {
-        String rawProductID = null;
-        String query = "SELECT rawproduct_id FROM raw_material WHERE rawproduct_name = ?";
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, rawProductId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                rawProductID = rs.getString("rawproduct_id");
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return rawProductID;
-    }
-
     private void updateProductionStatusForSelectedRow(JTable table, String status) {
         int selectedRow = table.getSelectedRow();
 
         if (selectedRow != -1) {
             int productionId = (int) table.getValueAt(selectedRow, 0);
-            int productId = getProductIdByProductionId(productionId);
-            int productionQuantity = getProductionQuantityById(productionId);
-            int rawMaterialId = getRawMaterialIdByProductId(productId);
+            int productId = productionDatabase.getProductIdByProductionId(productionId);
+            int productionQuantity = productionDatabase.getProductionQuantityById(productionId);
+            int rawMaterialId = productionDatabase.getRawMaterialIdByProductId(productId);
 
             if (rawMaterialId != -1) {
-                int requiredRawMaterialPerUnit = getRequiredRawMaterialQuantity(productId);
+                int requiredRawMaterialPerUnit = productionDatabase.getRequiredRawMaterialQuantity(productId);
                 int totalRequiredRawMaterial = productionQuantity * requiredRawMaterialPerUnit;
 
-                int currentRawStock = getRawMaterialStock(rawMaterialId);
+                int currentRawStock = productionDatabase.getRawMaterialStock(rawMaterialId);
 
                 if (currentRawStock >= totalRequiredRawMaterial) {
                     boolean success = updateProductionStatus(productionId, status);
@@ -177,7 +95,7 @@ public class givenWorkOrders extends javax.swing.JFrame {
 
         if (selectedRow != -1) {
             int productionId = (int) table.getValueAt(selectedRow, 0);
-            int productId = getProductIdByProductionId(productionId);
+            int productId = productionDatabase.getProductIdByProductionId(productionId);
             WarehouseDatabase warehouseDatabase = new WarehouseDatabase();
 
             boolean success = updateProductionStatus2(productionId, status);
@@ -287,8 +205,9 @@ public class givenWorkOrders extends javax.swing.JFrame {
                 .addComponent(process_btn)
                 .addGap(28, 28, 28))
             .addGroup(pending_pnlLayout.createSequentialGroup()
+                .addGap(20, 20, 20)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 866, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pending_pnlLayout.setVerticalGroup(
             pending_pnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

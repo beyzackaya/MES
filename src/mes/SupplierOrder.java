@@ -19,11 +19,11 @@ public class SupplierOrder extends javax.swing.JFrame {
         model.setRowCount(0);
 
         model.setColumnIdentifiers(new Object[]{
-            "Order ID", "Supplier Name", "Raw Material", "Order Quantity", "Order Date", "Expected Delivery Date"
+            "Order ID", "Supplier Name", "Raw Material", "Order Quantity","Order Cost", "Order Date", "Delivery Date"
         });
 
         String query = """
-        SELECT so.order_id, s.supplier_name, rm.rawproduct_name, so.order_quantity, so.order_date, so.expected_delivery_date
+        SELECT so.order_id, s.supplier_name, rm.rawproduct_name, so.order_quantity,so.supplier_order_cost, so.order_date, so.expected_delivery_date
         FROM supplier_orders so
         JOIN suppliers s ON so.supplier_id = s.supplier_id
         JOIN raw_material rm ON so.rawproduct_id = rm.rawproduct_id
@@ -38,6 +38,7 @@ public class SupplierOrder extends javax.swing.JFrame {
                     rs.getString("supplier_name"),
                     rs.getString("rawproduct_name"),
                     rs.getInt("order_quantity"),
+                    rs.getInt("supplier_order_cost"),
                     rs.getDate("order_date"),
                     rs.getDate("expected_delivery_date")
                 });
@@ -53,13 +54,12 @@ public class SupplierOrder extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) pasSupplierOrders_tbl.getModel();
         model.setRowCount(0);
 
-        // Tablo başlıklarını ayarla
         model.setColumnIdentifiers(new Object[]{
-            "Order ID", "Supplier Name", "Raw Material", "Order Quantity", "Order Date", "Expected Delivery Date", "Status"
+            "Order ID", "Supplier Name", "Raw Material", "Order Quantity","Order Cost", "Order Date", "Delivery Date", "Status"
         });
 
         String query = """
-        SELECT so.order_id, s.supplier_name, rm.rawproduct_name, so.order_quantity, so.order_date, so.expected_delivery_date, so.order_status
+        SELECT so.order_id, s.supplier_name, rm.rawproduct_name, so.order_quantity , so.supplier_order_cost, so.order_date, so.expected_delivery_date, so.order_status
         FROM supplier_orders so
         JOIN suppliers s ON so.supplier_id = s.supplier_id
         JOIN raw_material rm ON so.rawproduct_id = rm.rawproduct_id
@@ -74,6 +74,7 @@ public class SupplierOrder extends javax.swing.JFrame {
                     rs.getString("supplier_name"),
                     rs.getString("rawproduct_name"),
                     rs.getInt("order_quantity"),
+                    rs.getInt("supplier_order_cost"),
                     rs.getDate("order_date"),
                     rs.getDate("expected_delivery_date"),
                     rs.getString("order_status")

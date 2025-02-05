@@ -15,6 +15,15 @@ public class Production {
     private String status;
     private int warehouse_id;
     private Date productionDate;
+    private String username;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public Date getProductionDate() {
         return productionDate;

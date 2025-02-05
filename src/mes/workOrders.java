@@ -48,6 +48,12 @@ public class WorkOrders extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Üretim miktarı geçerli bir sayı olmalıdır.");
             return;
         }
+            String username = ManagerMenu.getUsername();
+            if (username == null || username.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Kullanıcı adı bulunamadı! Lütfen tekrar giriş yapın.", "Hata", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
 
         try {
             ProductionDatabase productionDatabase = new ProductionDatabase();
@@ -61,7 +67,8 @@ public class WorkOrders extends javax.swing.JFrame {
             Optional<Integer> rawProductIdOpt = productionDatabase.getRawProductIdByProductId(productId);
             Integer rawProductId = rawProductIdOpt.orElse(null);
 
-            boolean isCreated = productionDatabase.createWorkOrder(productId, warehouseId, rawProductId, productionQuantity);
+
+            boolean isCreated = productionDatabase.createWorkOrder(productId, warehouseId, rawProductId, productionQuantity,username);
             if (isCreated) {
                 JOptionPane.showMessageDialog(this, "İş emri başarıyla oluşturuldu!");
             } else {
@@ -102,6 +109,7 @@ public class WorkOrders extends javax.swing.JFrame {
         warehouse_combox = new javax.swing.JComboBox<>();
         warehouseName_lbl = new javax.swing.JLabel();
         productionAmount_lbl = new javax.swing.JLabel();
+        pastWorkOrder_btn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -131,6 +139,13 @@ public class WorkOrders extends javax.swing.JFrame {
 
         productionAmount_lbl.setText("Üretim Miktarı");
 
+        pastWorkOrder_btn.setText("Past Work Orders");
+        pastWorkOrder_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pastWorkOrder_btnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -138,12 +153,14 @@ public class WorkOrders extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(28, 28, 28)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1002, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(29, Short.MAX_VALUE))
+                .addContainerGap(145, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(createWorkOrder_btn)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(116, 116, 116)
+                .addComponent(pastWorkOrder_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(createWorkOrder_btn, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(warehouseName_lbl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(productionAmount_lbl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -151,7 +168,7 @@ public class WorkOrders extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(warehouse_combox, 0, 108, Short.MAX_VALUE)
                             .addComponent(quantity))))
-                .addGap(280, 280, 280))
+                .addGap(396, 396, 396))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -163,11 +180,14 @@ public class WorkOrders extends javax.swing.JFrame {
                     .addComponent(warehouse_combox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(warehouseName_lbl))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(quantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(productionAmount_lbl))
-                .addGap(18, 18, 18)
-                .addComponent(createWorkOrder_btn)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(quantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(productionAmount_lbl))
+                        .addGap(18, 18, 18)
+                        .addComponent(createWorkOrder_btn))
+                    .addComponent(pastWorkOrder_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(214, Short.MAX_VALUE))
         );
 
@@ -192,6 +212,11 @@ public class WorkOrders extends javax.swing.JFrame {
     private void createWorkOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createWorkOrder_btnActionPerformed
         createWorkOrder();
     }//GEN-LAST:event_createWorkOrder_btnActionPerformed
+
+    private void pastWorkOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pastWorkOrder_btnActionPerformed
+        // TODO add your handling code here:
+        new pastWorkOrders().setVisible(true);
+    }//GEN-LAST:event_pastWorkOrder_btnActionPerformed
 
     private void loadTable() {
         try {
@@ -224,6 +249,7 @@ public class WorkOrders extends javax.swing.JFrame {
                     product.getProductColor(),
                     product.getProductStock(),
                     product.getProductCategory(),
+                 
                     associatedRawMaterial != null ? associatedRawMaterial.getRawProductName() : "N/A",
                     associatedRawMaterial != null ? associatedRawMaterial.getRawProductStock() : "N/A"
                 });
@@ -250,6 +276,7 @@ public class WorkOrders extends javax.swing.JFrame {
     private javax.swing.JButton createWorkOrder_btn;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton pastWorkOrder_btn;
     private javax.swing.JLabel productionAmount_lbl;
     private javax.swing.JTable products_rawMaterials_tbl;
     private javax.swing.JTextField quantity;
