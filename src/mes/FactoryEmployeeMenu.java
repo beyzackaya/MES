@@ -4,6 +4,8 @@ public class FactoryEmployeeMenu extends javax.swing.JFrame {
 
     public FactoryEmployeeMenu(String username) {
         initComponents();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     @SuppressWarnings("unchecked")

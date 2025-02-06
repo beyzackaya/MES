@@ -1,17 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
+
 package mes;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import javax.swing.table.DefaultTableModel;
 import mes.Database.DatabaseConnector;
 
 
@@ -27,6 +20,8 @@ public class WarehouseEmployeeMenu extends javax.swing.JFrame {
     
     private WarehouseEmployeeMenu() {
         initComponents();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     private int getWarehouseIdByEmployee(int employeeId) {
@@ -113,6 +108,8 @@ public class WarehouseEmployeeMenu extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
+        new WarehouseGivenOrders().setVisible(true);
+        
     }//GEN-LAST:event_jButton1ActionPerformed
 
     public static void main(String args[]) {

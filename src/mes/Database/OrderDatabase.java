@@ -12,7 +12,7 @@ public class OrderDatabase {
 
     Order order = null;
 
-    public List<Order> getAllRawMaterials() {
+    public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();
 
         try {
@@ -28,6 +28,7 @@ public class OrderDatabase {
                 order.setOrderPrice(rs.getDouble("order_price"));
                 order.setOrderStatus(rs.getString("order_status"));
                 order.setOrderUserId(rs.getInt("user_id"));
+                order.setCustomerId(rs.getInt("customer_id"));
 
                 orders.add(order);
             }

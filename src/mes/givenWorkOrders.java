@@ -24,6 +24,8 @@ public class givenWorkOrders extends javax.swing.JFrame {
     public givenWorkOrders() {
         initComponents();
         updateTable();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
 
     }
     ProductionDatabase productionDatabase= new ProductionDatabase();

@@ -22,6 +22,8 @@ public class CreateClientOrder extends javax.swing.JFrame {
         refresh();
         calculateTotalPrice();
         loadCategories();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     DefaultTableModel model = new DefaultTableModel();

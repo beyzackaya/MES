@@ -40,6 +40,39 @@ public class UserDatabase {
 //        }
 //        return user;
 //    }
+    
+        public int getIdByName(String username) {
+        String query = "SELECT user_id FROM users WHERE username = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("user_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    
+            public String getNameById(int userId) {
+        String username = null;
+        String query = "SELECT username FROM users WHERE user_id = ?";
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                username = rs.getString("username");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return username;
+    }
+
     public List<User> getAllUsers() {
     List<User> userList = new ArrayList<>();
 

@@ -12,6 +12,8 @@ public class SupplierOrder extends javax.swing.JFrame {
         initComponents();
         loadPendingOrders();
         loadPastOrders();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     private void loadPendingOrders() {

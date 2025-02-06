@@ -20,6 +20,8 @@ public class NewRawMaterial extends javax.swing.JFrame {
     public NewRawMaterial() {
         initComponents();
         loadSuppliers();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     private void loadSuppliers() {

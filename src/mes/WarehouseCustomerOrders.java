@@ -18,6 +18,8 @@ public class WarehouseCustomerOrders extends javax.swing.JFrame {
 
     public WarehouseCustomerOrders() {
         initComponents();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
     
 //        private void loadTable(int warehouseId) {

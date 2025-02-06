@@ -25,6 +25,8 @@ public class ProductsFromProduction extends javax.swing.JFrame {
         loadTable(warehouseId);
         loadProductions();
         filter(warehouseId);
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
 
     }
 
@@ -263,7 +265,7 @@ public class ProductsFromProduction extends javax.swing.JFrame {
             if (rs.next()) {
                 String currentStatus = rs.getString("status");
 
-                if ("In Production".equalsIgnoreCase(currentStatus) && "Pending".equalsIgnoreCase(currentStatus)) {
+                if ("In Production".equalsIgnoreCase(currentStatus) && "Cancelled".equalsIgnoreCase(currentStatus)&& "Pending".equalsIgnoreCase(currentStatus)) {
                     JOptionPane.showMessageDialog(this, "Lütfen tamamlanan siparişlerden birini seçin");
                     return;
                 }

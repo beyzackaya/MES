@@ -1,22 +1,21 @@
 package mes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import mes.Database.DatabaseConnector;
-import java.sql.SQLException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import mes.Database.ProductDatabase;
 import mes.Database.WarehouseDatabase;
 import mes.Database.WarehouseStockDatabase;
+import mes.model.Basket;
+import mes.model.OrderProducts;
 
 public class AddBasket extends javax.swing.JFrame {
 
     private int selectedProductId;
     private String selectedProductName;
+    CreateOrder createOrder = new CreateOrder();
 
     public AddBasket() {
     }
@@ -142,83 +141,49 @@ public class AddBasket extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addBasket_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBasket_btnActionPerformed
-        // TODO add your handling code here:
-        int selectedRow = warehouseStocks_tbl.getSelectedRow();
+         int selectedRow = warehouseStocks_tbl.getSelectedRow();
 
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Lütfen bir depo seçin!");
-            return;
-        }
-
-        String selectedWarehouse = (String) warehouseStocks_tbl.getValueAt(selectedRow, 0);
-        int warehouseId = new WarehouseDatabase().getWarehouseIdByName(selectedWarehouse);
-
-        int availableStock = (int) warehouseStocks_tbl.getValueAt(selectedRow, 1);
-        int quantity;
-
-        try {
-            quantity = Integer.parseInt(quantity_txt.getText().trim());
-
-            if (quantity <= 0) {
-                JOptionPane.showMessageDialog(this, "Miktar pozitif bir sayı olmalıdır.");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Lütfen geçerli bir miktar girin.");
-            return;
-        }
-
-        double orderPrice = new ProductDatabase().getProductPriceById(selectedProductId);
-
-        boolean success = addToBasket(selectedProductId, warehouseId, quantity, orderPrice, availableStock);
-
-        if (success) {
-            JOptionPane.showMessageDialog(this, "Ürün sepete başarıyla eklendi!");
-        } else {
-            JOptionPane.showMessageDialog(this, "Ürün sepete eklenemedi.");
-        }
-
-    }//GEN-LAST:event_addBasket_btnActionPerformed
-    public boolean addToBasket(int productId, int warehouseId, int quantity, double orderPrice, int availableStock) {
-        String selectQuery = "SELECT quantity FROM basket WHERE product_id = ? AND warehouse_id = ?";
-        String updateQuery = "UPDATE basket SET quantity = quantity + ? WHERE product_id = ? AND warehouse_id = ?";
-        String insertQuery = "INSERT INTO basket (product_id, warehouse_id, quantity, order_price) VALUES (?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement selectStmt = conn.prepareStatement(selectQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
-
-            // Sepette bu ürün var mı kontrol et
-            selectStmt.setInt(1, productId);
-            selectStmt.setInt(2, warehouseId);
-            ResultSet rs = selectStmt.executeQuery();
-
-            int existingQuantity = 0;
-            if (rs.next()) {
-                existingQuantity = rs.getInt("quantity");
-            }
-
-            if (existingQuantity + quantity > availableStock) {
-                JOptionPane.showMessageDialog(null, "Depodaki mevcut stok aşılamaz! Maksimum eklenebilir miktar: " + (availableStock - existingQuantity));
-                return false;
-            }
-
-            if (existingQuantity > 0) {
-                updateStmt.setInt(1, quantity);
-                updateStmt.setInt(2, productId);
-                updateStmt.setInt(3, warehouseId);
-                return updateStmt.executeUpdate() > 0;
-            } else {
-                insertStmt.setInt(1, productId);
-                insertStmt.setInt(2, warehouseId);
-                insertStmt.setInt(3, quantity);
-                insertStmt.setDouble(4, orderPrice);
-                return insertStmt.executeUpdate() > 0;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Lütfen bir depo seçin!");
+        return;
     }
 
+    double orderPrice = new ProductDatabase().getProductPriceById(selectedProductId);
+    String quantityText = quantity_txt.getText().trim();
+    
+    if (quantityText.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Lütfen miktar giriniz!");
+        return;
+    }
+
+    int quantity;
+    try {
+        quantity = Integer.parseInt(quantityText);
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Geçerli bir sayı giriniz!");
+        return;
+    }
+
+    WarehouseDatabase warehouseid = new WarehouseDatabase();
+    String warehouseName = warehouseStocks_tbl.getValueAt(selectedRow, 0).toString();
+    int warehouse_id = warehouseid.getWarehouseIdByName(warehouseName);
+    int stock = Integer.parseInt(warehouseStocks_tbl.getValueAt(selectedRow, 1).toString());
+
+    if (quantity > stock) {
+        JOptionPane.showMessageDialog(this, "Stoktaki miktardan fazla ürün ekleyemezsiniz!");
+        return;
+    }
+
+    OrderProducts selectedProduct = new OrderProducts(selectedProductId, selectedProductName, orderPrice, quantity, warehouse_id);
+
+    // Singleton Basket nesnesine ekle
+    Basket.getInstance().addProduct(selectedProduct);
+
+    // CreateOrder içindeki tabloyu güncelle
+    createOrder.updateBasketTable();
+
+    JOptionPane.showMessageDialog(this, "Ürün sepete eklendi!");
+    }//GEN-LAST:event_addBasket_btnActionPerformed
     public static void main(String args[]) {
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -244,7 +209,7 @@ public class AddBasket extends javax.swing.JFrame {
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new AddBasket().setVisible(true);
+                new ProductsOrders().setVisible(true);
             }
         });
     }

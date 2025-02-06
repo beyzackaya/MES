@@ -11,11 +11,14 @@ public class LogIn extends javax.swing.JFrame {
 
     public LogIn() {
         initComponents();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     public String username() {
         String username = usernametxt.getText();
         return username;
+        
 
     }
 

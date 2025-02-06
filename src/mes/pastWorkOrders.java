@@ -21,6 +21,8 @@ public class pastWorkOrders extends javax.swing.JFrame {
         initComponents();
         loadTable();
         loadProductions();
+                setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+ 
     }
 
     private void filter() {
