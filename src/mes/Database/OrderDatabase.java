@@ -67,5 +67,23 @@ public class OrderDatabase {
 
         return enumValues.toString();
     }
+public String getCompanyNameByOrderId(int orderId) {
+        String query = "SELECT c.company_name FROM orders o " +
+                       "JOIN customers c ON o.customer_id = c.customer_id " +
+                       "WHERE o.order_id = ?";
+        try (        Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setInt(1, orderId); // Parametreyi ayarla
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("company_name"); // Müşteri adını döndür
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Eğer eşleşme yoksa null döndür
+    }
 
 }

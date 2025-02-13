@@ -3,46 +3,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/ManagerMenu.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/pastWorkOrders.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/FactoryEmployeeMenu.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Production.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/givenWorkOrders.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/LogIn.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/ProductDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/WarehouseDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/OrderDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/ProductionDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/NewRawMaterial.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/BasketDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/WareHouse.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/NewCustomer.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/WarehouseCustomerOrders.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/CustomerDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/newProduct.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Supplier.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/OrderProducts.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/UserDatabase.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/DatabaseConnector.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/CreateClientOrder.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/CreateOrder.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/WarehouseGivenOrders.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/SupplierDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/WorkOrders.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/ProductsOrders.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/ProductsFromProduction.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/RawMaterials.java</file>
             <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Orders.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Products.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Basket.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/WarehouseEmployeeMenu.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Order.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/NewSupplier.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/SupplierOrder.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/ProductRawMaterialDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/InventoryMovementDatabase.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/AddBasket.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Transfer.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Customer.java</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/password-148-2.png</file>
-            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/model/Product.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/ProductDatabase.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/WarehouseDatabase.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/CustomerDatabase.java</file>
+            <file>file:/Users/beyzackaya/Documents/GitHub/MES/src/mes/Database/OrderDatabase.java</file>
         </group>
     </open-files>
 </project-private>

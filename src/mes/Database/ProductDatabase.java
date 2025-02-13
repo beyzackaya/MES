@@ -22,6 +22,22 @@ public class ProductDatabase {
             return stmt.executeUpdate() > 0;
         }
     }
+    public int getProductIdByName(String productName) {
+        String query = "SELECT product_id FROM products WHERE product_name = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, productName);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("product_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
 
 public boolean deleteProductById(int productId) throws SQLException {
     Connection conn = null;
