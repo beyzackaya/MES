@@ -210,9 +210,9 @@ public class Transfer extends javax.swing.JFrame {
     boolean transferSuccess = transferDb.addTransfer(selectedProductId, fromWarehouseId, toWarehouseId, transferQuantity);
     
     if (transferSuccess) {
-        stockDb.updateWarehouseStock(selectedProductId, fromWarehouseId, -transferQuantity);
+        stockDb.insertWarehouseStock(selectedProductId, fromWarehouseId, -transferQuantity);
         
-        stockDb.updateWarehouseStock(selectedProductId, toWarehouseId, transferQuantity);
+        stockDb.insertWarehouseStock(selectedProductId, toWarehouseId, transferQuantity);
 
         JOptionPane.showMessageDialog(this, "Transfer başarıyla gerçekleştirildi!");
         loadProductWarehouses(); // Tabloyu güncelle

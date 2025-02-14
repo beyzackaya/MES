@@ -4,8 +4,11 @@ import mes.Database.DatabaseConnector;
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import mes.Database.BasketDatabase;
 import mes.Database.OrderDatabase;
 import mes.Database.ProductDatabase;
+import mes.Database.WarehouseDatabase;
+import mes.Database.WarehouseStockDatabase;
 
 public class WarehouseGivenOrders extends javax.swing.JFrame {
 
@@ -17,6 +20,7 @@ public class WarehouseGivenOrders extends javax.swing.JFrame {
         loadTable(this.warehouseId);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
+   
 
     private WarehouseGivenOrders() {
 
@@ -24,6 +28,8 @@ public class WarehouseGivenOrders extends javax.swing.JFrame {
 
     ProductDatabase productDatabase = new ProductDatabase();
     OrderDatabase orderDatabase = new OrderDatabase();
+    
+    
 
     private void loadTable(int warehouseId) {
         try {
@@ -158,10 +164,12 @@ public class WarehouseGivenOrders extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Lütfen bir ürün seçin!", "Uyarı", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        
 
-        // Seçili satırdan ilgili verileri al
         int basketId = (int) givenOrders_tbl.getValueAt(selectedRow, 0);
         updateBasketStatus(basketId);
+        
+        
 
     }//GEN-LAST:event_send_btnActionPerformed
 

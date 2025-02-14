@@ -1,6 +1,5 @@
 package mes;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
@@ -141,7 +140,7 @@ public class AddBasket extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addBasket_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBasket_btnActionPerformed
-         int selectedRow = warehouseStocks_tbl.getSelectedRow();
+        int selectedRow = warehouseStocks_tbl.getSelectedRow();
 
     if (selectedRow == -1) {
         JOptionPane.showMessageDialog(this, "Lütfen bir depo seçin!");
@@ -164,25 +163,36 @@ public class AddBasket extends javax.swing.JFrame {
         return;
     }
 
-    WarehouseDatabase warehouseid = new WarehouseDatabase();
+    WarehouseDatabase warehouseDb = new WarehouseDatabase();
     String warehouseName = warehouseStocks_tbl.getValueAt(selectedRow, 0).toString();
-    int warehouse_id = warehouseid.getWarehouseIdByName(warehouseName);
+    int warehouse_id = warehouseDb.getWarehouseIdByName(warehouseName);
     int stock = Integer.parseInt(warehouseStocks_tbl.getValueAt(selectedRow, 1).toString());
 
-    if (quantity > stock) {
+    // Sepetteki mevcut ürün miktarını kontrol et
+    int currentBasketQuantity = 0;
+    for (OrderProducts item : Basket.getInstance().getBasketItems()) {
+        if (item.getId() == selectedProductId && item.getWarehouse_id() == warehouse_id) {
+            currentBasketQuantity = item.getQuantity();
+            break;
+        }
+    }
+    int a=currentBasketQuantity + quantity;
+
+    if (a > stock) {
         JOptionPane.showMessageDialog(this, "Stoktaki miktardan fazla ürün ekleyemezsiniz!");
         return;
     }
+    
 
     OrderProducts selectedProduct = new OrderProducts(selectedProductId, selectedProductName, orderPrice, quantity, warehouse_id);
 
     // Singleton Basket nesnesine ekle
     Basket.getInstance().addProduct(selectedProduct);
 
-    // CreateOrder içindeki tabloyu güncelle
     createOrder.updateBasketTable();
 
     JOptionPane.showMessageDialog(this, "Ürün sepete eklendi!");
+
     }//GEN-LAST:event_addBasket_btnActionPerformed
     public static void main(String args[]) {
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">

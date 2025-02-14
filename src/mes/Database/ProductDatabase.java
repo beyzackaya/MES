@@ -50,7 +50,6 @@ public boolean deleteProductById(int productId) throws SQLException {
         conn = DatabaseConnector.getConnection();
         conn.setAutoCommit(false);
 
-        // 1. Ürünün production tablosundaki durumunu kontrol et
         String checkProductionStatusQuery = "SELECT status FROM production WHERE product_id = ?";
         pstmt1 = conn.prepareStatement(checkProductionStatusQuery);
         pstmt1.setInt(1, productId);
@@ -63,7 +62,6 @@ public boolean deleteProductById(int productId) throws SQLException {
             }
         }
 
-        // 2. Ürünle ilgili bağlantılı verileri temizle (Warehouse Stock, Transfer, Raw Material)
         String deleteWarehouseStockQuery = "DELETE FROM warehouse_stock WHERE product_id = ?";
         pstmt2 = conn.prepareStatement(deleteWarehouseStockQuery);
         pstmt2.setInt(1, productId);
@@ -79,13 +77,11 @@ public boolean deleteProductById(int productId) throws SQLException {
         pstmt2.setInt(1, productId);
         pstmt2.executeUpdate();
 
-        // 3. Ürünü production tablosundan sil
         String deleteProductionQuery = "DELETE FROM production WHERE product_id = ?";
         pstmt2 = conn.prepareStatement(deleteProductionQuery);
         pstmt2.setInt(1, productId);
         pstmt2.executeUpdate();
 
-        // 4. Son olarak products tablosundan ürünü sil
         String deleteProductQuery = "DELETE FROM products WHERE product_id = ?";
         pstmt3 = conn.prepareStatement(deleteProductQuery);
         pstmt3.setInt(1, productId);
@@ -204,6 +200,23 @@ public boolean deleteProductById(int productId) throws SQLException {
 //            pstmt.executeUpdate();
 //        }
 //    }
+    public List<Integer> getAllProductIds() {
+    List<Integer> productIds = new ArrayList<>();
+
+    try (Connection conn = DatabaseConnector.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement("SELECT product_id FROM products");
+         ResultSet rs = pstmt.executeQuery()) {
+
+        while (rs.next()) {
+            productIds.add(rs.getInt("product_id"));
+        }
+
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+
+    return productIds;
+}
 
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
@@ -266,6 +279,47 @@ public boolean deleteProductById(int productId) throws SQLException {
     }
     return 0.0;
 }
+        
+                public double getProductQuantityById(int productId) {
+    String query = "SELECT product_stock FROM products WHERE product_id = ?";
+
+    try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        stmt.setInt(1, productId);
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            return rs.getDouble("product_stock");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0.0;
+}
+public boolean updateProductStock(int productId, int quantity) {
+    ProductDatabase productDatabase=new ProductDatabase();
+        double checkStock = productDatabase.getProductQuantityById(productId);
+    String updateQuery = "UPDATE Products SET product_stock = product_stock - ? WHERE product_id = ? ";
+
+    try (Connection conn = DatabaseConnector.getConnection(); 
+         PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
+        if(quantity>checkStock){
+            System.out.println("KJSHDFKHSDKFHSHDLFJHASLKDHFKJSDHFKL");
+            
+        return false;}
+       
+        
+        stmt.setInt(1, quantity);
+        stmt.setInt(2, productId);
+
+        int rowsUpdated = stmt.executeUpdate();
+
+        return rowsUpdated > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
 
 
 

@@ -61,8 +61,7 @@ public class WarehouseStockDatabase {
     }
     
     
-public boolean updateWarehouseStock(int productId, int warehouseId, int quantityChange) {
-    // Önce mevcut stok miktarını al
+public boolean insertWarehouseStock(int productId, int warehouseId, int quantityChange) {
     int currentStock = getStockForProduct(warehouseId, productId);
     
     if (currentStock == -1) {
@@ -85,6 +84,30 @@ public boolean updateWarehouseStock(int productId, int warehouseId, int quantity
         return false;
     }
 }
+public boolean decreaseWarehouseStock(int productId, int warehouseId, int quantityChange) {
+    int currentStock = getStockForProduct(warehouseId, productId);
+    
+    if (currentStock == -1) {
+        System.out.println("Stok bilgisi bulunamadı! ");
+    }
+
+    int newStock = currentStock - quantityChange;
+    
+    String query = "UPDATE warehouse_stock SET quantity_in_stock = ? WHERE product_id = ? AND warehouse_id = ?";
+
+    try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        stmt.setInt(1, newStock);
+        stmt.setInt(2, productId);
+        stmt.setInt(3, warehouseId);
+
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+
 
 public int getStockForProduct(int warehouseId, int productId) {
     String query = "SELECT quantity_in_stock FROM warehouse_stock WHERE warehouse_id = ? AND product_id = ?";

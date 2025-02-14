@@ -1,5 +1,7 @@
 package mes;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,16 +12,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.JDialog;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import mes.Database.DatabaseConnector;
 import mes.Database.OrderDatabase;
+import mes.model.Order;
 
 public class CreateClientOrder extends javax.swing.JFrame {
 
     public CreateClientOrder() {
         initComponents();
-        refresh();
+        //refresh();
+        loadTable();
         calculateTotalPrice();
         loadCategories();
                 setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -79,43 +88,149 @@ public class CreateClientOrder extends javax.swing.JFrame {
             ex.printStackTrace();
         }
     }
+private void showBasketDetails(int orderId) {
+    String query = "SELECT product_id, warehouse_id, quantity, order_price, status FROM basket WHERE order_id = ?";
 
-    private void refresh() {
-        model.addColumn("Product Name");
-        model.addColumn("Warehouse");
-        model.addColumn("Color");
-        model.addColumn("Gender");
-        model.addColumn("Quantity");
-        model.addColumn("Price");
+    DefaultTableModel model = new DefaultTableModel(new String[]{
+        "Product ID", "Warehouse ID", "Quantity", "Order Price", "Status"
+    }, 0);
 
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            String query = "SELECT  p.product_id, p.product_name, p.product_color, p.product_gender, b.quantity, b.order_price,b.warehouse_id "
-                    + "FROM products p "
-                    + "JOIN basket b ON p.product_id = b.product_id";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            ResultSet rs = pstmt.executeQuery();
+    try (Connection conn = DatabaseConnector.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            while (rs.next()) {
-                int warehouseId = rs.getInt("warehouse_id");
-                String productName = rs.getString("product_name");
-                String color = rs.getString("product_color");
-                String gender = rs.getString("product_gender");
-                int quantity = rs.getInt("quantity");
-                double salePrice = rs.getDouble("order_price");
-                double totalPrice = salePrice * quantity;
+        stmt.setInt(1, orderId);
+        ResultSet rs = stmt.executeQuery();
 
-                model.addRow(new Object[]{productName, warehouseId, color, gender, quantity, totalPrice});
+        while (rs.next()) {
+            model.addRow(new Object[]{
+                rs.getInt("product_id"),
+                rs.getInt("warehouse_id"),
+                rs.getInt("quantity"),
+                rs.getBigDecimal("order_price"),
+                rs.getString("status")
+            });
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    JTable table = new JTable(model);
+    JScrollPane scrollPane = new JScrollPane(table);
+
+    // Yeni pencere aç
+    JDialog dialog = new JDialog();
+    dialog.setTitle("Basket Detayları - Order ID: " + orderId);
+    dialog.setSize(600, 400);
+    dialog.setLocationRelativeTo(null);
+    dialog.add(scrollPane);
+    dialog.setVisible(true);
+}private void addRightClickMenu() {
+    JPopupMenu popupMenu = new JPopupMenu();
+    JMenuItem showBasketItems = new JMenuItem("Basket Detaylarını Göster");
+
+    showBasketItems.addActionListener(e -> {
+        int selectedRow = orderProduct_tbl.getSelectedRow();
+        if (selectedRow != -1) {
+            int orderId = (int) orderProduct_tbl.getValueAt(selectedRow, 0); // Order ID al
+            showBasketDetails(orderId); // Basket detaylarını göster
+        }
+    });
+
+    popupMenu.add(showBasketItems);
+
+    orderProduct_tbl.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                showMenu(e);
+            }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                showMenu(e);
+            }
+        }
+
+        private void showMenu(MouseEvent e) {
+            int row = orderProduct_tbl.rowAtPoint(e.getPoint());
+            if (row >= 0) {
+                orderProduct_tbl.setRowSelectionInterval(row, row);
+                popupMenu.show(orderProduct_tbl, e.getX(), e.getY());
+            }
+        }
+    });
+}
+        void loadTable() {
+        try {
+            OrderDatabase orderDatabase = new OrderDatabase();
+            List<Order> orders = orderDatabase.getAllOrders();
+
+            DefaultTableModel model = new DefaultTableModel(new String[]{
+                "order ID", "price", "date", "status", "userid","customer","quantity"
+            }, 0);
+
+            for (Order p : orders) {
+                model.addRow(new Object[]{
+                    p.getOrderId(),
+                    p.getOrderPrice(),
+                    p.getOrdeDate(),
+                    p.getOrderStatus(),
+                    p.getOrderUserId(),
+                    p.getCustomerId(),
+                    p.getOrderQuantity()
+                });
             }
 
             orderProduct_tbl.setModel(model);
+                    addRightClickMenu();
 
-            rs.close();
-            pstmt.close();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage());
+
+        } catch (Exception ex) {
             ex.printStackTrace();
+            javax.swing.JOptionPane.showMessageDialog(this, "Error loading table: " + ex.getMessage());
         }
     }
+
+
+//    private void refresh() {
+//        model.addColumn("Product Name");
+//        model.addColumn("Warehouse");
+//        model.addColumn("Color");
+//        model.addColumn("Gender");
+//        model.addColumn("Quantity");
+//        model.addColumn("Price");
+//
+//        try (Connection conn = DatabaseConnector.getConnection()) {
+//            String query = "SELECT  p.product_id, p.product_name, p.product_color, p.product_gender, b.quantity, b.order_price,b.warehouse_id "
+//                    + "FROM products p "
+//                    + "JOIN basket b ON p.product_id = b.product_id";
+//            PreparedStatement pstmt = conn.prepareStatement(query);
+//            ResultSet rs = pstmt.executeQuery();
+//
+//            while (rs.next()) {
+//                int warehouseId = rs.getInt("warehouse_id");
+//                String productName = rs.getString("product_name");
+//                String color = rs.getString("product_color");
+//                String gender = rs.getString("product_gender");
+//                int quantity = rs.getInt("quantity");
+//                double salePrice = rs.getDouble("order_price");
+//                double totalPrice = salePrice * quantity;
+//
+//                model.addRow(new Object[]{productName, warehouseId, color, gender, quantity, totalPrice});
+//            }
+//
+//            orderProduct_tbl.setModel(model);
+//
+//            rs.close();
+//            pstmt.close();
+//        } catch (SQLException ex) {
+//            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage());
+//            ex.printStackTrace();
+//        }
+//    }
 
     private List<Map<String, Object>> getWarehousesForProduct(int productId, Connection conn) throws SQLException {
         List<Map<String, Object>> warehouseList = new ArrayList<>();

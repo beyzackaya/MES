@@ -243,7 +243,6 @@ public class ProductsFromProduction extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void teslimAlındı_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_teslimAlındı_btnActionPerformed
-        // TODO add your handling code here:
         int selectedRow = productsFromProduction.getSelectedRow();
 
 

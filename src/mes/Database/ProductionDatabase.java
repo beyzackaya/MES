@@ -24,7 +24,7 @@ public class ProductionDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return 0;  // Eğer stok bilgisi yoksa 0 döner
+        return 0;  
     }
 
     private static void updateWarehouseStockAfterProduction(int productionId) {

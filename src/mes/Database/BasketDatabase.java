@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package mes.Database;
 
 import java.util.ArrayList;
@@ -9,21 +5,48 @@ import java.util.List;
 import java.sql.*;
 import mes.model.Basket;
 
-/**
- *
- * @author beyzackaya
- */
 public class BasketDatabase {
-    
-            public List<Basket> getAllBaskets() {
+
+    public int getProductIdByBasketId(int basketId) {
+        String query = "SELECT product_id FROM basket WHERE basket_id = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, basketId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("product_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public int getQuantityByBasketId(int basketId) {
+        String query = "SELECT quantity FROM basket WHERE basket_id = ?";
+
+        try (Connection conn = DatabaseConnector.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, basketId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("quantity");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public List<Basket> getAllBaskets() {
         List<Basket> baskets = new ArrayList<>();
 
         try {
             Connection conn = DatabaseConnector.getConnection();
-            String sql = "SELECT * FROM  basket"; 
+            String sql = "SELECT * FROM  basket";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
-            
 
             while (rs.next()) {
                 Basket basket = new Basket();
@@ -34,7 +57,6 @@ public class BasketDatabase {
                 basket.setWarehouseId(rs.getInt("warehouse_id"));
                 basket.setStatus(rs.getString("status"));
                 basket.setOrderPrice(rs.getInt("order_price"));
-
 
                 baskets.add(basket);
             }
@@ -48,5 +70,4 @@ public class BasketDatabase {
         return baskets;
     }
 
-    
 }

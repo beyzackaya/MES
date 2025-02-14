@@ -1,6 +1,5 @@
 package mes;
 
-
 import mes.Database.WarehouseDatabase;
 import mes.model.Basket;
 import mes.model.OrderProducts;
@@ -10,9 +9,10 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import mes.Database.CustomerDatabase;
+import mes.Database.ProductDatabase;
 import mes.Database.UserDatabase;
+import mes.Database.WarehouseStockDatabase;
 import mes.model.Customer;
-
 
 public class CreateOrder extends javax.swing.JFrame {
 
@@ -22,17 +22,20 @@ public class CreateOrder extends javax.swing.JFrame {
         updateBasketTable();
         loadCompanies();
         calculateTotalPrice();
+        updateStock();
 
     }
-      public String capitalizeFirstLetter(String str) {
+    ProductDatabase productDatabase = new ProductDatabase();
+    WarehouseDatabase warehouseDatabase = new WarehouseDatabase();
+
+    public String capitalizeFirstLetter(String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }
         return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 
-    
-        private void loadCompanies() {
+    private void loadCompanies() {
         try {
             CustomerDatabase supplierDatabase = new CustomerDatabase();
             List<Customer> suppliers = supplierDatabase.getAllCustomers();
@@ -40,7 +43,7 @@ public class CreateOrder extends javax.swing.JFrame {
             Set<String> companies = new HashSet<>();
 
             for (Customer p : suppliers) {
-                if (p.getCompanyName()!= null && !p.getCompanyName().isEmpty()) {
+                if (p.getCompanyName() != null && !p.getCompanyName().isEmpty()) {
                     companies.add(p.getCompanyName().toLowerCase());
                 }
             }
@@ -56,8 +59,8 @@ public class CreateOrder extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Renkler yüklenirken bir hata oluştu: " + ex.getMessage());
         }
     }
-        
-         private void calculateTotalPrice() {
+
+    private void calculateTotalPrice() {
         double totalPrice = 0.0;
         DefaultTableModel tblModel = (DefaultTableModel) basket_tbl.getModel();
         int priceColumnIndex = 4;
@@ -75,7 +78,6 @@ public class CreateOrder extends javax.swing.JFrame {
         totalPrice_lbl.setText(String.valueOf(totalPrice));
     }
 
-
     public void updateBasketTable() {
         DefaultTableModel model = new DefaultTableModel(new String[]{
             "Product ID", "Name", "Quantity", "Warehouse", "Price",}, 0);
@@ -92,6 +94,17 @@ public class CreateOrder extends javax.swing.JFrame {
             });
         }
         basket_tbl.setModel(model);
+    }
+
+    public void updateStock() {
+        List<Integer> productIds = productDatabase.getAllProductIds();
+
+        for (int productId : productIds) {
+
+            int total = warehouseDatabase.getTotalStockForProduct(productId);
+            warehouseDatabase.updateProductStock(productId, total);
+
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -221,7 +234,7 @@ public class CreateOrder extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
         updateBasketTable();
-                calculateTotalPrice();
+        calculateTotalPrice();
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -237,62 +250,71 @@ public class CreateOrder extends javax.swing.JFrame {
     private void createOrder_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createOrder_btnActionPerformed
         // TODO add your handling code here:
         try {
-        CustomerDatabase customerDb = new CustomerDatabase();
-        WarehouseDatabase warehouseDb = new WarehouseDatabase();
-            UserDatabase userDatabase=new UserDatabase();
-        
-        String selectedCompany = (String) companyName_combox.getSelectedItem();
-        if (selectedCompany == null || selectedCompany.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Lütfen bir firma seçin!");
-            return;
-        }
-        String username = ManagerMenu.getUsername();
+            CustomerDatabase customerDb = new CustomerDatabase();
+            UserDatabase userDatabase = new UserDatabase();
+
+            String selectedCompany = (String) companyName_combox.getSelectedItem();
+            if (selectedCompany == null || selectedCompany.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Lütfen bir firma seçin!");
+                return;
+            }
+            String username = ManagerMenu.getUsername();
             if (username == null || username.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Kullanıcı adı bulunamadı! Lütfen tekrar giriş yapın.", "Hata", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-        
-        int customerId = customerDb.getCustomerIdByCompanyName(selectedCompany);
-        if (customerId == -1) {
-            JOptionPane.showMessageDialog(this, "Müşteri bulunamadı!");
-            return;
+            DefaultTableModel tblModel = (DefaultTableModel) basket_tbl.getModel();
+            if (tblModel.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, "Sepetiniz boş! Sipariş oluşturmak için ürün ekleyin.", "Hata", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int customerId = customerDb.getCustomerIdByCompanyName(selectedCompany);
+            if (customerId == -1) {
+                JOptionPane.showMessageDialog(this, "Müşteri bulunamadı!");
+                return;
+            }
+            int userId = userDatabase.getIdByName(username);
+
+            double totalPrice = Double.parseDouble(totalPrice_lbl.getText());
+
+            int orderId = customerDb.createOrder(totalPrice, customerId, userId);
+            if (orderId == -1) {
+                JOptionPane.showMessageDialog(this, "Sipariş oluşturulamadı!");
+                return;
+            }
+
+            for (int i = 0; i < tblModel.getRowCount(); i++) {
+
+                WarehouseStockDatabase warehouseStockDatabase = new WarehouseStockDatabase();
+
+                int productId = Integer.parseInt(tblModel.getValueAt(i, 0).toString());
+                int quantity = Integer.parseInt(tblModel.getValueAt(i, 2).toString());
+                double price = Double.parseDouble(tblModel.getValueAt(i, 4).toString());
+                int warehouseId = warehouseDatabase.getWarehouseIdByName(tblModel.getValueAt(i, 3).toString());
+                warehouseStockDatabase.decreaseWarehouseStock(productId, warehouseId, quantity);
+
+                int total = warehouseDatabase.getTotalStockForProduct(productId);
+                warehouseDatabase.updateProductStock(productId, total);
+
+                customerDb.addProductToBasket(productId, warehouseId, quantity, price, orderId);
+            }
+
+            JOptionPane.showMessageDialog(this, "Sipariş başarıyla oluşturuldu!");
+
+            Basket.getInstance().getBasketItems().clear();
+            updateBasketTable();
+            totalPrice_lbl.setText("0.0");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Sipariş oluşturulurken hata oluştu: " + ex.getMessage());
         }
-        int userId=userDatabase.getIdByName(username);
-
-
-        double totalPrice = Double.parseDouble(totalPrice_lbl.getText());
-        
-        int orderId = customerDb.createOrder(totalPrice, customerId,userId);
-        if (orderId == -1) {
-            JOptionPane.showMessageDialog(this, "Sipariş oluşturulamadı!");
-            return;
-        }
-        
-        DefaultTableModel tblModel = (DefaultTableModel) basket_tbl.getModel();
-        for (int i = 0; i < tblModel.getRowCount(); i++) {
-            int productId = Integer.parseInt(tblModel.getValueAt(i, 0).toString());
-            int quantity = Integer.parseInt(tblModel.getValueAt(i, 2).toString());
-            double price = Double.parseDouble(tblModel.getValueAt(i, 4).toString());
-            int warehouseId = warehouseDb.getWarehouseIdByName(tblModel.getValueAt(i, 3).toString());
-            
-            customerDb.addProductToBasket(productId, warehouseId, quantity, price, orderId);
-        }
-
-        JOptionPane.showMessageDialog(this, "Sipariş başarıyla oluşturuldu!");
-        
-        Basket.getInstance().getBasketItems().clear();
-        updateBasketTable();
-        totalPrice_lbl.setText("0.0");
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Sipariş oluşturulurken hata oluştu: " + ex.getMessage());
-    }
     }//GEN-LAST:event_createOrder_btnActionPerformed
 
-    public static void main(String args[]) {       
+    public static void main(String args[]) {
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        
+
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
