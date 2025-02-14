@@ -140,7 +140,7 @@ public class AddBasket extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addBasket_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBasket_btnActionPerformed
-        int selectedRow = warehouseStocks_tbl.getSelectedRow();
+       int selectedRow = warehouseStocks_tbl.getSelectedRow();
 
     if (selectedRow == -1) {
         JOptionPane.showMessageDialog(this, "Lütfen bir depo seçin!");
@@ -149,7 +149,7 @@ public class AddBasket extends javax.swing.JFrame {
 
     double orderPrice = new ProductDatabase().getProductPriceById(selectedProductId);
     String quantityText = quantity_txt.getText().trim();
-    
+
     if (quantityText.isEmpty()) {
         JOptionPane.showMessageDialog(this, "Lütfen miktar giriniz!");
         return;
@@ -165,32 +165,37 @@ public class AddBasket extends javax.swing.JFrame {
 
     WarehouseDatabase warehouseDb = new WarehouseDatabase();
     String warehouseName = warehouseStocks_tbl.getValueAt(selectedRow, 0).toString();
-    int warehouse_id = warehouseDb.getWarehouseIdByName(warehouseName);
+    int warehouseId = warehouseDb.getWarehouseIdByName(warehouseName);
     int stock = Integer.parseInt(warehouseStocks_tbl.getValueAt(selectedRow, 1).toString());
 
-    // Sepetteki mevcut ürün miktarını kontrol et
-    int currentBasketQuantity = 0;
-    for (OrderProducts item : Basket.getInstance().getBasketItems()) {
-        if (item.getId() == selectedProductId && item.getWarehouse_id() == warehouse_id) {
-            currentBasketQuantity = item.getQuantity();
-            break;
-        }
-    }
-    int a=currentBasketQuantity + quantity;
-
-    if (a > stock) {
+    // Stoktaki miktarı kontrol et
+    if (quantity > stock) {
         JOptionPane.showMessageDialog(this, "Stoktaki miktardan fazla ürün ekleyemezsiniz!");
         return;
     }
+
+    // Sepette bu ürün var mı kontrol et
+    OrderProducts existingProduct = Basket.getInstance().getProductById(selectedProductId, warehouseId);
     
+    if (existingProduct != null) {
+        // Ürün zaten sepette varsa, miktarını arttır
+        int newQuantity = existingProduct.getQuantity() + quantity;
+        
+        // Stoktaki miktarı aşmamak için yeni miktarı kontrol et
+        if (newQuantity > stock) {
+            JOptionPane.showMessageDialog(this, "Stoktaki miktardan fazla ürün sepete eklenemez!");
+            return;
+        }
 
-    OrderProducts selectedProduct = new OrderProducts(selectedProductId, selectedProductName, orderPrice, quantity, warehouse_id);
+        existingProduct.setQuantity(newQuantity); // Mevcut miktarı güncelle
+    } else {
+        // Ürün sepette yoksa, yeni ürün ekle
+        OrderProducts selectedProduct = new OrderProducts(selectedProductId, selectedProductName, orderPrice, quantity, warehouseId);
+        Basket.getInstance().addProduct(selectedProduct);
+    }
 
-    // Singleton Basket nesnesine ekle
-    Basket.getInstance().addProduct(selectedProduct);
-
+    // Sepeti güncelle
     createOrder.updateBasketTable();
-
     JOptionPane.showMessageDialog(this, "Ürün sepete eklendi!");
 
     }//GEN-LAST:event_addBasket_btnActionPerformed

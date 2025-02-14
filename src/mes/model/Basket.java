@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Basket {
+
     private int productId;
     private int orderPrice;
     private int quantity;
@@ -67,8 +68,7 @@ public class Basket {
     public void setOrderId(int orderId) {
         this.orderId = orderId;
     }
-    
-    
+
     private static Basket instance;
     private List<OrderProducts> basketItems;
 
@@ -82,6 +82,15 @@ public class Basket {
             instance = new Basket();
         }
         return instance;
+    }
+
+    public OrderProducts getProductById(int productId, int warehouseId) {
+        for (OrderProducts product : basketItems) {
+            if (product.getId() == productId && product.getWarehouse_id() == warehouseId) {
+                return product;
+            }
+        }
+        return null;
     }
 
     public void addProduct(OrderProducts product) {
